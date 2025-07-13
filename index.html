@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Sortable Filterable Cards</title>
+  <title>Filterable Cards</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
@@ -25,12 +25,12 @@
     .filters {
       display: flex;
       flex-direction: column;
+      align-items: center;
       gap: 0.5em;
-      max-width: 400px;
-      margin: 0 auto 1.5em;
+      margin: 1em 0;
     }
 
-    select {
+    select, button {
       padding: 0.5em;
       font-size: 1em;
     }
@@ -66,25 +66,15 @@
 <body>
 
 <header>
-  <h1>Sortable & Filterable Cards</h1>
+  <h1>Project Dashboard</h1>
   <div class="filters">
-    <select id="sortSelect">
-      <option value="Name">Sort by Name</option>
-      <option value="Category">Sort by Category</option>
-      <option value="Date">Sort by Date</option>
-      <option value="Status">Sort by Status</option>
-    </select>
     <select id="filterStatus">
       <option value="">Filter by Status</option>
       <option value="Complete">Complete</option>
       <option value="In Progress">In Progress</option>
       <option value="Not Started">Not Started</option>
     </select>
-    <select id="filterCategory">
-      <option value="">Filter by Category</option>
-      <option value="Alpha">Alpha</option>
-      <option value="Beta">Beta</option>
-    </select>
+    <button id="resetBtn">Reset Filter</button>
   </div>
 </header>
 
@@ -98,13 +88,9 @@
     container.innerHTML = '';
 
     const selectedStatus = document.getElementById('filterStatus').value;
-    const selectedCategory = document.getElementById('filterCategory').value;
 
     const filtered = data.filter(row => {
-      return (
-        (!selectedStatus || row.Status === selectedStatus) &&
-        (!selectedCategory || row.Category === selectedCategory)
-      );
+      return !selectedStatus || row.Status === selectedStatus;
     });
 
     filtered.forEach(row => {
@@ -120,37 +106,30 @@
     });
 
     if (filtered.length === 0) {
-      container.innerHTML = '<p>No results match the selected filters.</p>';
+      container.innerHTML = '<p>No results match the selected filter.</p>';
     }
   }
 
-  function sortCards(byField) {
-    const sorted = [...cardData].sort((a, b) => {
-      if (byField === 'Date') {
-        return new Date(a.Date) - new Date(b.Date);
-      }
-      return a[byField].localeCompare(b[byField]);
-    });
-    renderCards(sorted);
-  }
-
-  // Initial data load
+  // Load data from CSV
   Papa.parse('data.csv', {
     download: true,
     header: true,
     complete: function(results) {
-      cardData = results.data.filter(row => row.Name); // filter out blank rows
-      sortCards(document.getElementById('sortSelect').value);
+      cardData = results.data.filter(row => row.Name); // skip blank rows
+      renderCards(cardData);
     }
   });
 
-  // Event listeners
-  document.getElementById('sortSelect').addEventListener('change', function () {
-    sortCards(this.value);
+  // Filter logic
+  document.getElementById('filterStatus').addEventListener('change', () => {
+    renderCards(cardData);
   });
 
-  document.getElementById('filterStatus').addEventListener('change', () => sortCards(document.getElementById('sortSelect').value));
-  document.getElementById('filterCategory').addEventListener('change', () => sortCards(document.getElementById('sortSelect').value));
+  // Reset filter logic
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    document.getElementById('filterStatus').value = '';
+    renderCards(cardData);
+  });
 </script>
 
 </body>
