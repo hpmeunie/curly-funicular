@@ -191,20 +191,21 @@
         const start = new Date(row["Start Time"]);
         const end = new Date(row["End Time"]);
         const now = new Date();
-        let progress = 0;
-        let statusText = '';
+       let progress = 0;
+let statusText = '';
 
-        if (now < start) {
-          statusText = `Starts at ${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-        } else if (now >= end) {
-          progress = 100;
-          statusText = 'Completed';
-        } else {
-          const total = end - start;
-          const elapsed = now - start;
-          progress = Math.min(100, (elapsed / total) * 100);
-          statusText = `${Math.floor(progress)}% Complete`;
-        }
+if (now < start) {
+  statusText = `Starts at ${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+} else if (now >= end) {
+  progress = 100;
+  statusText = 'Completed';
+} else {
+  const total = end - start;
+  const elapsed = now - start;
+  const remaining = Math.ceil((end - now) / 60000); // in minutes
+  progress = Math.min(100, (elapsed / total) * 100);
+  statusText = `${remaining} minute${remaining === 1 ? '' : 's'} remaining`;
+}
 
         card.innerHTML = `
           <h3>${row.Session}</h3>
