@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Filterable Table</title>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2em; }
+  </style>
+</head>
+<body>
+
+  <h1>My Filterable Data Table</h1>
+  <table id="myTable" class="display">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Category</th>
+        <th>Date</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Item 1</td><td>Alpha</td><td>2025-07-13</td><td>Complete</td></tr>
+      <tr><td>Item 2</td><td>Beta</td><td>2025-07-12</td><td>In Progress</td></tr>
+      <tr><td>Item 3</td><td>Alpha</td><td>2025-07-11</td><td>Not Started</td></tr>
+      <!-- Add more rows as needed -->
+    </tbody>
+  </table>
+
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      $('#myTable').DataTable();
+    });
+  </script>
+
+</body>
+</html>
