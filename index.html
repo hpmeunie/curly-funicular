@@ -33,6 +33,7 @@
     select, button {
       padding: 0.5em;
       font-size: 1em;
+      min-width: 200px;
     }
 
     .cards {
@@ -75,11 +76,13 @@
   <div class="filters">
     <select id="filterRoom">
       <option value="">Filter by Room</option>
-      <option value="101">Room 101</option>
-      <option value="102">Room 102</option>
-      <option value="103">Room 103</option>
     </select>
-    <button id="resetBtn">Reset Filter</button>
+
+    <select id="filterTech">
+      <option value="">Filter by Technician</option>
+    </select>
+
+    <button id="resetBtn">Reset Filters</button>
   </div>
 </header>
 
@@ -93,10 +96,19 @@
     container.innerHTML = '';
 
     const selectedRoom = document.getElementById('filterRoom').value;
+    const selectedTech = document.getElementById('filterTech').value;
 
     const filtered = data.filter(row => {
-      return !selectedRoom || row.Room === selectedRoom;
+      return (
+        (!selectedRoom || row.Room === selectedRoom) &&
+        (!selectedTech || row.Technician === selectedTech)
+      );
     });
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<p>No sessions match the selected filters.</p>';
+      return;
+    }
 
     filtered.forEach(row => {
       const card = document.createElement('div');
@@ -110,10 +122,29 @@
       `;
       container.appendChild(card);
     });
+  }
 
-    if (filtered.length === 0) {
-      container.innerHTML = '<p>No sessions match this filter.</p>';
-    }
+  // Populate dropdowns dynamically
+  function populateFilters(data) {
+    const rooms = [...new Set(data.map(row => row.Room))];
+    const techs = [...new Set(data.map(row => row.Technician))];
+
+    const roomSelect = document.getElementById('filterRoom');
+    const techSelect = document.getElementById('filterTech');
+
+    rooms.sort().forEach(room => {
+      const opt = document.createElement('option');
+      opt.value = room;
+      opt.textContent = `Room ${room}`;
+      roomSelect.appendChild(opt);
+    });
+
+    techs.sort().forEach(tech => {
+      const opt = document.createElement('option');
+      opt.value = tech;
+      opt.textContent = tech;
+      techSelect.appendChild(opt);
+    });
   }
 
   // Load data from CSV
@@ -122,18 +153,23 @@
     header: true,
     complete: function(results) {
       cardData = results.data.filter(row => row.Session); // skip blanks
+      populateFilters(cardData);
       renderCards(cardData);
     }
   });
 
-  // Filter logic
+  // Event Listeners
   document.getElementById('filterRoom').addEventListener('change', () => {
     renderCards(cardData);
   });
 
-  // Reset logic
+  document.getElementById('filterTech').addEventListener('change', () => {
+    renderCards(cardData);
+  });
+
   document.getElementById('resetBtn').addEventListener('click', () => {
     document.getElementById('filterRoom').value = '';
+    document.getElementById('filterTech').value = '';
     renderCards(cardData);
   });
 </script>
