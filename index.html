@@ -45,26 +45,32 @@
 
     .filters {
       display: flex;
-      flex-direction: column;
-      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
       gap: 0.5em;
       margin: 1.5em 0;
     }
 
-    select, button {
+    select, button, input[type="text"] {
       background-color: var(--card-bg);
       color: var(--text);
       border: 1px solid var(--card-border);
       border-radius: 6px;
       padding: 0.6em;
       font-size: 1em;
-      min-width: 200px;
-      transition: background 0.2s;
+      min-width: 180px;
     }
 
-    select:hover, button:hover {
-      background-color: var(--hover-bg);
-      cursor: pointer;
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 0.5em;
+      margin-top: 1em;
+      flex-wrap: wrap;
+    }
+
+    .tabs button {
+      padding: 0.4em 1em;
     }
 
     .cards {
@@ -81,7 +87,6 @@
       border-radius: 12px;
       padding: 1em;
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-      transition: background 0.3s ease, border 0.3s ease;
     }
 
     .card h3 {
@@ -89,9 +94,12 @@
       color: var(--accent);
     }
 
-    .card p {
-      margin: 0.3em 0;
-      color: var(--text);
+    .badge {
+      display: inline-block;
+      padding: 0.2em 0.6em;
+      border-radius: 6px;
+      font-size: 0.8em;
+      margin-left: 0.5em;
     }
 
     .progress-container {
@@ -109,7 +117,6 @@
       height: 100%;
       background-color: var(--accent);
       width: 0%;
-      transition: width 0.4s ease;
     }
 
     .progress-label {
@@ -122,20 +129,18 @@
       position: absolute;
       top: 1rem;
       right: 1rem;
-      background: var(--card-bg);
-      color: var(--text);
-      border: 1px solid var(--card-border);
-      border-radius: 6px;
-      padding: 0.4em 0.8em;
-      font-size: 0.9em;
-      cursor: pointer;
-      transition: background 0.3s, color 0.3s;
     }
 
-    @media (min-width: 600px) {
-      .filters {
-        flex-direction: row;
-        justify-content: center;
+    .print-hidden {
+      display: none;
+    }
+
+    @media print {
+      .theme-toggle,
+      .filters,
+      .tabs,
+      .print-toggle {
+        display: none !important;
       }
     }
   </style>
@@ -148,22 +153,30 @@
   <header>
     <h1>Convention Schedule</h1>
     <div class="filters">
-      <select id="filterRoom">
-        <option value="">Filter by Room</option>
-      </select>
-
-      <select id="filterTech">
-        <option value="">Filter by Technician</option>
-      </select>
-
+      <input type="text" id="searchInput" placeholder="Search sessions..." />
+      <select id="filterRoom"><option value="">Filter by Room</option></select>
+      <select id="filterTech"><option value="">Filter by Technician</option></select>
       <button id="resetBtn">Reset Filters</button>
+      <button id="printBtn">Print View</button>
     </div>
+    <div class="tabs" id="dayTabs"></div>
   </header>
 
   <div id="cardsContainer" class="cards"></div>
 
   <script>
     let cardData = [];
+    let activeDate = "";
+
+    const techColors = {}; // Store unique colors per technician
+
+    function hashColor(str) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      return `hsl(${hash % 360}, 60%, 60%)`;
+    }
 
     function renderCards(data) {
       const container = document.getElementById('cardsContainer');
@@ -171,46 +184,64 @@
 
       const selectedRoom = document.getElementById('filterRoom').value;
       const selectedTech = document.getElementById('filterTech').value;
+      const search = document.getElementById('searchInput').value.toLowerCase();
 
       const filtered = data.filter(row => {
+        const date = new Date(row["Start Time"]).toDateString();
+        const matchesSearch =
+          row.Session.toLowerCase().includes(search) ||
+          row.Technician.toLowerCase().includes(search) ||
+          row["AV Gear"].toLowerCase().includes(search) ||
+          row.Room.includes(search);
+
         return (
           (!selectedRoom || row.Room === selectedRoom) &&
-          (!selectedTech || row.Technician === selectedTech)
+          (!selectedTech || row.Technician === selectedTech) &&
+          (!activeDate || date === activeDate) &&
+          matchesSearch
         );
       });
 
-      if (filtered.length === 0) {
-        container.innerHTML = '<p>No sessions match the selected filters.</p>';
-        return;
-      }
-
-      filtered.forEach(row => {
+      filtered.forEach((row, idx, arr) => {
         const card = document.createElement('div');
         card.className = 'card';
 
         const start = new Date(row["Start Time"]);
         const end = new Date(row["End Time"]);
         const now = new Date();
-       let progress = 0;
-let statusText = '';
+        const dateKey = start.toDateString();
+        let progress = 0;
+        let statusText = '';
 
-if (now < start) {
-  statusText = `Starts at ${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-} else if (now >= end) {
-  progress = 100;
-  statusText = 'Completed';
-} else {
-  const total = end - start;
-  const elapsed = now - start;
-  const remaining = Math.ceil((end - now) / 60000); // in minutes
-  progress = Math.min(100, (elapsed / total) * 100);
-  statusText = `${remaining} minute${remaining === 1 ? '' : 's'} remaining`;
-}
+        if (now < start) {
+          statusText = `Starts at ${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        } else if (now >= end) {
+          progress = 100;
+          statusText = 'Completed';
+        } else {
+          const total = end - start;
+          const elapsed = now - start;
+          const remaining = Math.ceil((end - now) / 60000);
+          progress = Math.min(100, (elapsed / total) * 100);
+          statusText = `${remaining} minute${remaining === 1 ? '' : 's'} remaining`;
+        }
+
+        const techColor = techColors[row.Technician] || hashColor(row.Technician);
+        techColors[row.Technician] = techColor;
+
+        const hasConflict = arr.some((other, i) => {
+          if (i === idx || other.Technician !== row.Technician) return false;
+          const os = new Date(other["Start Time"]);
+          const oe = new Date(other["End Time"]);
+          return os < end && oe > start;
+        });
 
         card.innerHTML = `
           <h3>${row.Session}</h3>
           <p><strong>Room:</strong> ${row.Room}</p>
-          <p><strong>Technician:</strong> ${row.Technician}</p>
+          <p><strong>Technician:</strong> <span class="badge" style="background:${techColor};color:#000">${row.Technician}</span>
+          ${hasConflict ? '<span class="badge" style="background:#f00;color:#fff">Conflict</span>' : ''}
+          </p>
           <p><strong>Start:</strong> ${row["Start Time"]}</p>
           <p><strong>End:</strong> ${row["End Time"]}</p>
           <p><strong>AV Gear:</strong> ${row["AV Gear"]}</p>
@@ -226,24 +257,43 @@ if (now < start) {
     }
 
     function populateFilters(data) {
-      const rooms = [...new Set(data.map(row => row.Room))].sort();
-      const techs = [...new Set(data.map(row => row.Technician))].sort();
+      const roomSet = new Set();
+      const techSet = new Set();
+      const dateSet = new Set();
+
+      data.forEach(row => {
+        roomSet.add(row.Room);
+        techSet.add(row.Technician);
+        dateSet.add(new Date(row["Start Time"]).toDateString());
+      });
 
       const roomSelect = document.getElementById('filterRoom');
       const techSelect = document.getElementById('filterTech');
+      const tabContainer = document.getElementById('dayTabs');
 
-      rooms.forEach(room => {
+      roomSet.forEach(room => {
         const opt = document.createElement('option');
         opt.value = room;
         opt.textContent = `Room ${room}`;
         roomSelect.appendChild(opt);
       });
 
-      techs.forEach(tech => {
+      techSet.forEach(tech => {
         const opt = document.createElement('option');
         opt.value = tech;
         opt.textContent = tech;
         techSelect.appendChild(opt);
+      });
+
+      tabContainer.innerHTML = '';
+      [...dateSet].sort().forEach(date => {
+        const btn = document.createElement('button');
+        btn.textContent = date;
+        btn.onclick = () => {
+          activeDate = date;
+          renderCards(cardData);
+        };
+        tabContainer.appendChild(btn);
       });
     }
 
@@ -259,29 +309,32 @@ if (now < start) {
 
     document.getElementById('filterRoom').addEventListener('change', () => renderCards(cardData));
     document.getElementById('filterTech').addEventListener('change', () => renderCards(cardData));
+    document.getElementById('searchInput').addEventListener('input', () => renderCards(cardData));
     document.getElementById('resetBtn').addEventListener('click', () => {
       document.getElementById('filterRoom').value = '';
       document.getElementById('filterTech').value = '';
+      document.getElementById('searchInput').value = '';
+      activeDate = '';
       renderCards(cardData);
     });
 
-    // Theme toggle logic
-    const toggleBtn = document.getElementById('themeToggle');
-    const body = document.body;
-    const savedTheme = localStorage.getItem('theme');
+    document.getElementById('printBtn').addEventListener('click', () => {
+      window.print();
+    });
 
-    if (savedTheme) {
-      body.setAttribute('data-theme', savedTheme);
-    }
-
-    toggleBtn.addEventListener('click', () => {
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      const body = document.body;
       const current = body.getAttribute('data-theme');
       const next = current === 'dark' ? 'light' : 'dark';
       body.setAttribute('data-theme', next);
       localStorage.setItem('theme', next);
     });
 
-    // Auto-refresh progress bars every 60 seconds
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      document.body.setAttribute('data-theme', savedTheme);
+    }
+
     setInterval(() => renderCards(cardData), 60000);
   </script>
 
