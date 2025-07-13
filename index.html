@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Filterable Cards</title>
+  <title>Convention Schedule</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
@@ -10,7 +10,7 @@
       font-family: sans-serif;
       margin: 0;
       padding: 1em;
-      background: #f9f9f9;
+      background: #f4f4f4;
     }
 
     header {
@@ -53,6 +53,11 @@
 
     .card h3 {
       margin-top: 0;
+      color: #0055aa;
+    }
+
+    .card p {
+      margin: 0.3em 0;
     }
 
     @media (min-width: 600px) {
@@ -66,13 +71,13 @@
 <body>
 
 <header>
-  <h1>Project Dashboard</h1>
+  <h1>Convention Schedule</h1>
   <div class="filters">
-    <select id="filterStatus">
-      <option value="">Filter by Status</option>
-      <option value="Complete">Complete</option>
-      <option value="In Progress">In Progress</option>
-      <option value="Not Started">Not Started</option>
+    <select id="filterRoom">
+      <option value="">Filter by Room</option>
+      <option value="101">Room 101</option>
+      <option value="102">Room 102</option>
+      <option value="103">Room 103</option>
     </select>
     <button id="resetBtn">Reset Filter</button>
   </div>
@@ -87,26 +92,27 @@
     const container = document.getElementById('cardsContainer');
     container.innerHTML = '';
 
-    const selectedStatus = document.getElementById('filterStatus').value;
+    const selectedRoom = document.getElementById('filterRoom').value;
 
     const filtered = data.filter(row => {
-      return !selectedStatus || row.Status === selectedStatus;
+      return !selectedRoom || row.Room === selectedRoom;
     });
 
     filtered.forEach(row => {
       const card = document.createElement('div');
       card.className = 'card';
       card.innerHTML = `
-        <h3>${row.Name}</h3>
-        <p><strong>Category:</strong> ${row.Category}</p>
-        <p><strong>Date:</strong> ${row.Date}</p>
-        <p><strong>Status:</strong> ${row.Status}</p>
+        <h3>${row.Session}</h3>
+        <p><strong>Room:</strong> ${row.Room}</p>
+        <p><strong>Technician:</strong> ${row.Technician}</p>
+        <p><strong>Start Time:</strong> ${row["Start Time"]}</p>
+        <p><strong>AV Gear:</strong> ${row["AV Gear"]}</p>
       `;
       container.appendChild(card);
     });
 
     if (filtered.length === 0) {
-      container.innerHTML = '<p>No results match the selected filter.</p>';
+      container.innerHTML = '<p>No sessions match this filter.</p>';
     }
   }
 
@@ -115,19 +121,19 @@
     download: true,
     header: true,
     complete: function(results) {
-      cardData = results.data.filter(row => row.Name); // skip blank rows
+      cardData = results.data.filter(row => row.Session); // skip blanks
       renderCards(cardData);
     }
   });
 
   // Filter logic
-  document.getElementById('filterStatus').addEventListener('change', () => {
+  document.getElementById('filterRoom').addEventListener('change', () => {
     renderCards(cardData);
   });
 
-  // Reset filter logic
+  // Reset logic
   document.getElementById('resetBtn').addEventListener('click', () => {
-    document.getElementById('filterStatus').value = '';
+    document.getElementById('filterRoom').value = '';
     renderCards(cardData);
   });
 </script>
