@@ -94,6 +94,30 @@
       color: var(--text);
     }
 
+    .progress-container {
+      margin-top: 0.7em;
+    }
+
+    .progress-bar {
+      height: 10px;
+      border-radius: 6px;
+      background-color: #555;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background-color: var(--accent);
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+
+    .progress-label {
+      font-size: 0.8em;
+      color: var(--text);
+      margin-top: 0.3em;
+    }
+
     .theme-toggle {
       position: absolute;
       top: 1rem;
@@ -163,12 +187,38 @@
       filtered.forEach(row => {
         const card = document.createElement('div');
         card.className = 'card';
+
+        const start = new Date(row["Start Time"]);
+        const end = new Date(row["End Time"]);
+        const now = new Date();
+        let progress = 0;
+        let statusText = '';
+
+        if (now < start) {
+          statusText = `Starts at ${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        } else if (now >= end) {
+          progress = 100;
+          statusText = 'Completed';
+        } else {
+          const total = end - start;
+          const elapsed = now - start;
+          progress = Math.min(100, (elapsed / total) * 100);
+          statusText = `${Math.floor(progress)}% Complete`;
+        }
+
         card.innerHTML = `
           <h3>${row.Session}</h3>
           <p><strong>Room:</strong> ${row.Room}</p>
           <p><strong>Technician:</strong> ${row.Technician}</p>
-          <p><strong>Start Time:</strong> ${row["Start Time"]}</p>
+          <p><strong>Start:</strong> ${row["Start Time"]}</p>
+          <p><strong>End:</strong> ${row["End Time"]}</p>
           <p><strong>AV Gear:</strong> ${row["AV Gear"]}</p>
+          <div class="progress-container">
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: ${progress}%;"></div>
+            </div>
+            <div class="progress-label">${statusText}</div>
+          </div>
         `;
         container.appendChild(card);
       });
@@ -229,6 +279,9 @@
       body.setAttribute('data-theme', next);
       localStorage.setItem('theme', next);
     });
+
+    // Auto-refresh progress bars every 60 seconds
+    setInterval(() => renderCards(cardData), 60000);
   </script>
 
 </body>
