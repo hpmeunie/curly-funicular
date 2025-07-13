@@ -1,34 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Sortable Cards from CSV</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  <meta charset="UTF-8" />
+  <title>Sortable Filterable Cards</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; padding: 2em; }
-    select { margin-bottom: 1em; padding: 0.5em; }
-    .cards { display: flex; flex-wrap: wrap; gap: 1em; }
-    .card {
-      border: 1px solid #ccc;
-      border-radius: 12px;
+    body {
+      font-family: sans-serif;
+      margin: 0;
       padding: 1em;
-      width: 250px;
-      box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
+      background: #f9f9f9;
     }
-    .card h3 { margin-top: 0; }
+
+    header {
+      text-align: center;
+      margin-bottom: 1em;
+    }
+
+    h1 {
+      margin-bottom: 0.5em;
+    }
+
+    .filters {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5em;
+      max-width: 400px;
+      margin: 0 auto 1.5em;
+    }
+
+    select {
+      padding: 0.5em;
+      font-size: 1em;
+    }
+
+    .cards {
+      display: flex;
+      flex-direction: column;
+      gap: 1em;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 1em;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .card h3 {
+      margin-top: 0;
+    }
+
+    @media (min-width: 600px) {
+      .filters {
+        flex-direction: row;
+        justify-content: center;
+      }
+    }
   </style>
 </head>
 <body>
 
-<h2>Sortable Card View</h2>
-
-<label for="sortSelect">Sort by:</label>
-<select id="sortSelect">
-  <option value="Name">Name</option>
-  <option value="Category">Category</option>
-  <option value="Date">Date</option>
-  <option value="Status">Status</option>
-</select>
+<header>
+  <h1>Sortable & Filterable Cards</h1>
+  <div class="filters">
+    <select id="sortSelect">
+      <option value="Name">Sort by Name</option>
+      <option value="Category">Sort by Category</option>
+      <option value="Date">Sort by Date</option>
+      <option value="Status">Sort by Status</option>
+    </select>
+    <select id="filterStatus">
+      <option value="">Filter by Status</option>
+      <option value="Complete">Complete</option>
+      <option value="In Progress">In Progress</option>
+      <option value="Not Started">Not Started</option>
+    </select>
+    <select id="filterCategory">
+      <option value="">Filter by Category</option>
+      <option value="Alpha">Alpha</option>
+      <option value="Beta">Beta</option>
+    </select>
+  </div>
+</header>
 
 <div id="cardsContainer" class="cards"></div>
 
@@ -37,9 +95,19 @@
 
   function renderCards(data) {
     const container = document.getElementById('cardsContainer');
-    container.innerHTML = ''; // Clear previous cards
+    container.innerHTML = '';
 
-    data.forEach(row => {
+    const selectedStatus = document.getElementById('filterStatus').value;
+    const selectedCategory = document.getElementById('filterCategory').value;
+
+    const filtered = data.filter(row => {
+      return (
+        (!selectedStatus || row.Status === selectedStatus) &&
+        (!selectedCategory || row.Category === selectedCategory)
+      );
+    });
+
+    filtered.forEach(row => {
       const card = document.createElement('div');
       card.className = 'card';
       card.innerHTML = `
@@ -50,31 +118,39 @@
       `;
       container.appendChild(card);
     });
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<p>No results match the selected filters.</p>';
+    }
   }
 
   function sortCards(byField) {
     const sorted = [...cardData].sort((a, b) => {
       if (byField === 'Date') {
-        return new Date(a[byField]) - new Date(b[byField]);
+        return new Date(a.Date) - new Date(b.Date);
       }
       return a[byField].localeCompare(b[byField]);
     });
     renderCards(sorted);
   }
 
-  // Load CSV and initialize
+  // Initial data load
   Papa.parse('data.csv', {
     download: true,
     header: true,
     complete: function(results) {
-      cardData = results.data;
-      sortCards('Name'); // default sort
+      cardData = results.data.filter(row => row.Name); // filter out blank rows
+      sortCards(document.getElementById('sortSelect').value);
     }
   });
 
-  document.getElementById('sortSelect').addEventListener('change', function() {
+  // Event listeners
+  document.getElementById('sortSelect').addEventListener('change', function () {
     sortCards(this.value);
   });
+
+  document.getElementById('filterStatus').addEventListener('change', () => sortCards(document.getElementById('sortSelect').value));
+  document.getElementById('filterCategory').addEventListener('change', () => sortCards(document.getElementById('sortSelect').value));
 </script>
 
 </body>
