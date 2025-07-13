@@ -2,54 +2,78 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Filterable Table from Excel</title>
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <title>Sortable Cards from CSV</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 2em; }
+    select { margin-bottom: 1em; padding: 0.5em; }
+    .cards { display: flex; flex-wrap: wrap; gap: 1em; }
+    .card {
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      padding: 1em;
+      width: 250px;
+      box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
+    }
+    .card h3 { margin-top: 0; }
+  </style>
 </head>
 <body>
 
-<h2>Data from Excel (CSV)</h2>
-<table id="excelTable" class="display">
-  <thead>
-    <tr id="table-head"></tr>
-  </thead>
-  <tbody id="table-body">
-  </tbody>
-</table>
+<h2>Sortable Card View</h2>
 
-<!-- Dependencies -->
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+<label for="sortSelect">Sort by:</label>
+<select id="sortSelect">
+  <option value="Name">Name</option>
+  <option value="Category">Category</option>
+  <option value="Date">Date</option>
+  <option value="Status">Status</option>
+</select>
+
+<div id="cardsContainer" class="cards"></div>
 
 <script>
-  $(document).ready(function () {
-    Papa.parse('data.csv', {
-      download: true,
-      header: true,
-      complete: function (results) {
-        const data = results.data;
-        if (data.length === 0) return;
+  let cardData = [];
 
-        // Create table header
-        const headers = Object.keys(data[0]);
-        headers.forEach(h => {
-          $('#table-head').append(`<th>${h}</th>`);
-        });
+  function renderCards(data) {
+    const container = document.getElementById('cardsContainer');
+    container.innerHTML = ''; // Clear previous cards
 
-        // Populate rows
-        data.forEach(row => {
-          let rowHTML = '<tr>';
-          headers.forEach(h => {
-            rowHTML += `<td>${row[h]}</td>`;
-          });
-          rowHTML += '</tr>';
-          $('#table-body').append(rowHTML);
-        });
-
-        // Initialize DataTable
-        $('#excelTable').DataTable();
-      }
+    data.forEach(row => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <h3>${row.Name}</h3>
+        <p><strong>Category:</strong> ${row.Category}</p>
+        <p><strong>Date:</strong> ${row.Date}</p>
+        <p><strong>Status:</strong> ${row.Status}</p>
+      `;
+      container.appendChild(card);
     });
+  }
+
+  function sortCards(byField) {
+    const sorted = [...cardData].sort((a, b) => {
+      if (byField === 'Date') {
+        return new Date(a[byField]) - new Date(b[byField]);
+      }
+      return a[byField].localeCompare(b[byField]);
+    });
+    renderCards(sorted);
+  }
+
+  // Load CSV and initialize
+  Papa.parse('data.csv', {
+    download: true,
+    header: true,
+    complete: function(results) {
+      cardData = results.data;
+      sortCards('Name'); // default sort
+    }
+  });
+
+  document.getElementById('sortSelect').addEventListener('change', function() {
+    sortCards(this.value);
   });
 </script>
 
