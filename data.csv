@@ -1,6 +1,6 @@
-Room,Technician,Start Time,Session,AV Gear
-101,Alex,2025-07-13 09:00,"Opening Keynote","Projector, Lavalier Mic, PA System"
-102,Jamie,2025-07-13 10:30,"Workshop A","Laptop, HDMI Switch, Whiteboard"
-101,Alex,2025-07-13 11:00,"Panel Discussion","Wired Mics, Soundboard"
-103,Riley,2025-07-13 13:00,"Networking Lunch",None
-102,Jamie,2025-07-13 14:30,"Workshop B","Projector, Flip Chart"
+Room,Technician,Start Time,End Time,Session,AV Gear
+101,Alex,2025-07-13 09:00,2025-07-13 10:00,"Opening Keynote","Projector, Lavalier Mic, PA System"
+102,Jamie,2025-07-13 10:30,2025-07-13 12:00,"Workshop A","Laptop, HDMI Switch, Whiteboard"
+101,Alex,2025-07-13 11:00,2025-07-13 12:00,"Panel Discussion","Wired Mics, Soundboard"
+103,Riley,2025-07-13 13:00,2025-07-13 14:00,"Networking Lunch",None
+102,Jamie,2025-07-13 14:30,2025-07-13 16:00,"Workshop B","Projector, Flip Chart"
