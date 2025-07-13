@@ -5,12 +5,33 @@
   <title>Convention Schedule</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
   <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1c1c1e;
+      --card-bg: #f9f9f9;
+      --card-border: #ccc;
+      --accent: #007aff;
+      --hover-bg: #eaeaea;
+    }
+
+    [data-theme="dark"] {
+      --bg: #1c1c1e;
+      --text: #f5f5f7;
+      --card-bg: #2c2c2e;
+      --card-border: #3a3a3c;
+      --accent: #0a84ff;
+      --hover-bg: #3a3a3c;
+    }
+
     body {
-      font-family: sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       margin: 0;
       padding: 1em;
-      background: #f4f4f4;
+      background-color: var(--bg);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
     }
 
     header {
@@ -27,13 +48,23 @@
       flex-direction: column;
       align-items: center;
       gap: 0.5em;
-      margin: 1em 0;
+      margin: 1.5em 0;
     }
 
     select, button {
-      padding: 0.5em;
+      background-color: var(--card-bg);
+      color: var(--text);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 0.6em;
       font-size: 1em;
       min-width: 200px;
+      transition: background 0.2s;
+    }
+
+    select:hover, button:hover {
+      background-color: var(--hover-bg);
+      cursor: pointer;
     }
 
     .cards {
@@ -45,20 +76,36 @@
     }
 
     .card {
-      background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 10px;
+      background-color: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
       padding: 1em;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      transition: background 0.3s ease, border 0.3s ease;
     }
 
     .card h3 {
       margin-top: 0;
-      color: #0055aa;
+      color: var(--accent);
     }
 
     .card p {
       margin: 0.3em 0;
+      color: var(--text);
+    }
+
+    .theme-toggle {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: var(--card-bg);
+      color: var(--text);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 0.4em 0.8em;
+      font-size: 0.9em;
+      cursor: pointer;
+      transition: background 0.3s, color 0.3s;
     }
 
     @media (min-width: 600px) {
@@ -69,110 +116,120 @@
     }
   </style>
 </head>
-<body>
 
-<header>
-  <h1>Convention Schedule</h1>
-  <div class="filters">
-    <select id="filterRoom">
-      <option value="">Filter by Room</option>
-    </select>
+<body data-theme="dark">
 
-    <select id="filterTech">
-      <option value="">Filter by Technician</option>
-    </select>
+  <button class="theme-toggle" id="themeToggle">Toggle Theme</button>
 
-    <button id="resetBtn">Reset Filters</button>
-  </div>
-</header>
+  <header>
+    <h1>Convention Schedule</h1>
+    <div class="filters">
+      <select id="filterRoom">
+        <option value="">Filter by Room</option>
+      </select>
 
-<div id="cardsContainer" class="cards"></div>
+      <select id="filterTech">
+        <option value="">Filter by Technician</option>
+      </select>
 
-<script>
-  let cardData = [];
+      <button id="resetBtn">Reset Filters</button>
+    </div>
+  </header>
 
-  function renderCards(data) {
-    const container = document.getElementById('cardsContainer');
-    container.innerHTML = '';
+  <div id="cardsContainer" class="cards"></div>
 
-    const selectedRoom = document.getElementById('filterRoom').value;
-    const selectedTech = document.getElementById('filterTech').value;
+  <script>
+    let cardData = [];
 
-    const filtered = data.filter(row => {
-      return (
-        (!selectedRoom || row.Room === selectedRoom) &&
-        (!selectedTech || row.Technician === selectedTech)
-      );
-    });
+    function renderCards(data) {
+      const container = document.getElementById('cardsContainer');
+      container.innerHTML = '';
 
-    if (filtered.length === 0) {
-      container.innerHTML = '<p>No sessions match the selected filters.</p>';
-      return;
+      const selectedRoom = document.getElementById('filterRoom').value;
+      const selectedTech = document.getElementById('filterTech').value;
+
+      const filtered = data.filter(row => {
+        return (
+          (!selectedRoom || row.Room === selectedRoom) &&
+          (!selectedTech || row.Technician === selectedTech)
+        );
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<p>No sessions match the selected filters.</p>';
+        return;
+      }
+
+      filtered.forEach(row => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <h3>${row.Session}</h3>
+          <p><strong>Room:</strong> ${row.Room}</p>
+          <p><strong>Technician:</strong> ${row.Technician}</p>
+          <p><strong>Start Time:</strong> ${row["Start Time"]}</p>
+          <p><strong>AV Gear:</strong> ${row["AV Gear"]}</p>
+        `;
+        container.appendChild(card);
+      });
     }
 
-    filtered.forEach(row => {
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.innerHTML = `
-        <h3>${row.Session}</h3>
-        <p><strong>Room:</strong> ${row.Room}</p>
-        <p><strong>Technician:</strong> ${row.Technician}</p>
-        <p><strong>Start Time:</strong> ${row["Start Time"]}</p>
-        <p><strong>AV Gear:</strong> ${row["AV Gear"]}</p>
-      `;
-      container.appendChild(card);
+    function populateFilters(data) {
+      const rooms = [...new Set(data.map(row => row.Room))].sort();
+      const techs = [...new Set(data.map(row => row.Technician))].sort();
+
+      const roomSelect = document.getElementById('filterRoom');
+      const techSelect = document.getElementById('filterTech');
+
+      rooms.forEach(room => {
+        const opt = document.createElement('option');
+        opt.value = room;
+        opt.textContent = `Room ${room}`;
+        roomSelect.appendChild(opt);
+      });
+
+      techs.forEach(tech => {
+        const opt = document.createElement('option');
+        opt.value = tech;
+        opt.textContent = tech;
+        techSelect.appendChild(opt);
+      });
+    }
+
+    Papa.parse('data.csv', {
+      download: true,
+      header: true,
+      complete: function(results) {
+        cardData = results.data.filter(row => row.Session);
+        populateFilters(cardData);
+        renderCards(cardData);
+      }
     });
-  }
 
-  // Populate dropdowns dynamically
-  function populateFilters(data) {
-    const rooms = [...new Set(data.map(row => row.Room))];
-    const techs = [...new Set(data.map(row => row.Technician))];
-
-    const roomSelect = document.getElementById('filterRoom');
-    const techSelect = document.getElementById('filterTech');
-
-    rooms.sort().forEach(room => {
-      const opt = document.createElement('option');
-      opt.value = room;
-      opt.textContent = `Room ${room}`;
-      roomSelect.appendChild(opt);
-    });
-
-    techs.sort().forEach(tech => {
-      const opt = document.createElement('option');
-      opt.value = tech;
-      opt.textContent = tech;
-      techSelect.appendChild(opt);
-    });
-  }
-
-  // Load data from CSV
-  Papa.parse('data.csv', {
-    download: true,
-    header: true,
-    complete: function(results) {
-      cardData = results.data.filter(row => row.Session); // skip blanks
-      populateFilters(cardData);
+    document.getElementById('filterRoom').addEventListener('change', () => renderCards(cardData));
+    document.getElementById('filterTech').addEventListener('change', () => renderCards(cardData));
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      document.getElementById('filterRoom').value = '';
+      document.getElementById('filterTech').value = '';
       renderCards(cardData);
+    });
+
+    // Theme toggle logic
+    const toggleBtn = document.getElementById('themeToggle');
+    const body = document.body;
+    const savedTheme = localStorage.getItem('theme');
+
+    if (savedTheme) {
+      body.setAttribute('data-theme', savedTheme);
     }
-  });
 
-  // Event Listeners
-  document.getElementById('filterRoom').addEventListener('change', () => {
-    renderCards(cardData);
-  });
-
-  document.getElementById('filterTech').addEventListener('change', () => {
-    renderCards(cardData);
-  });
-
-  document.getElementById('resetBtn').addEventListener('click', () => {
-    document.getElementById('filterRoom').value = '';
-    document.getElementById('filterTech').value = '';
-    renderCards(cardData);
-  });
-</script>
+    toggleBtn.addEventListener('click', () => {
+      const current = body.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      body.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    });
+  </script>
 
 </body>
 </html>
