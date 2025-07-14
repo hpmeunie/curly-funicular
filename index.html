@@ -146,13 +146,15 @@
     const cardsContainer    = document.getElementById("cardsContainer");
     const calendarContainer = document.getElementById("calendarContainer");
 
-    function hashColor(str) {
-      let hash = 0;
-      for (let i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 5) - hash);
-      }
-      return `hsl(${hash % 360},60%,60%)`;
-    }
+   function hashColor(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  // 40% saturation, 60% lightness for softer, less bright colors
+  return `hsl(${hash % 360}, 40%, 60%)`;
+}
+
 
     function toggleView() {
       currentView = currentView === "card" ? "calendar" : "card";
