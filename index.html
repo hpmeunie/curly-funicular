@@ -37,6 +37,7 @@
       border: 1px solid var(--card-border); border-radius: 6px;
       padding: .6em; font-size: 1em; min-width: 180px;
     }
+    #toggleViewBtn, #resetBtn { cursor: pointer; }
     #themeToggle {
       background: none; border: 1px solid var(--card-border);
       font-size: 1.4em; padding: .6em .2em; width: 2.5em;
@@ -109,28 +110,18 @@
       color: white; overflow: hidden; box-sizing: border-box;
       border: 1px solid var(--card-border);
     }
-    .session-header {
-  font-size: 0.75em;
-  line-height: 1.2;
-  margin-bottom: 0.3em;
-}
-
-.session-title {
-  font-weight: bold;
-  font-size: 0.9em;
-  line-height: 1.2;
-}
-
     .current-time-line {
       position: absolute; left: 0; right: 0;
       height: 2px; background: var(--now-line);
       z-index: 10;
     }
+    .session-header {
+      font-size: .8em; line-height: 1.2; text-align: center;
+    }
   </style>
 </head>
 
 <body data-theme="dark">
-
   <h1>Convention Schedule</h1>
 
   <div class="filters">
@@ -159,7 +150,7 @@
   const DataModule = {
     load(path, cb) {
       Papa.parse(path, { download: true, header: true,
-        complete: res => cb(res.data.filter(r=>r.Session)) 
+        complete: res => cb(res.data.filter(r=>r.Session))
       });
     }
   };
@@ -243,13 +234,9 @@
               <span class="badge tech-filter" style="background:${color};">${r.Technician}</span>
               ${conflict?'<span class="badge" style="background:#f00;color:#fff">Conflict</span>':''}
             </p>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width:${
-                cls==="active"
-                  ? ((now-st)/(en-st)*100)
-                  : 100
-              }%"></div>
-            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${
+              cls==="active"?((now-st)/(en-st)*100):100
+            }%"></div></div>
             <div class="progress-label">${txt}</div>
           </div>
         `;
@@ -275,95 +262,90 @@
       const arr = FilterModule.get(sessions)
         .map(r=>({ ...r, start:new Date(r["Start Time"]), end:new Date(r["End Time"]) }));
 
-      // hours
+      // draw 24h grid
       for(let h=0; h<24; h++){
-        const hr = document.createElement("div");
-        hr.className = "calendar-hour";
-        hr.style.top = `${h*60}px`;
-        const lbl = document.createElement("div");
-        lbl.className = "calendar-hour-label";
-        lbl.textContent = `${String(h).padStart(2,"0")}:00`;
+        const hr=document.createElement("div");
+        hr.className="calendar-hour";
+        hr.style.top=`${h*60}px`;
+        const lbl=document.createElement("div");
+        lbl.className="calendar-hour-label";
+        lbl.textContent=`${String(h).padStart(2,"0")}:00`;
         hr.appendChild(lbl);
         c.appendChild(hr);
       }
 
-      // now line
+      // current time line
       const now=new Date();
-      const mins=now.getHours()*60+now.getMinutes();
+      const m = now.getHours()*60+now.getMinutes();
       const line=document.createElement("div");
       line.className="current-time-line";
-      line.style.top=`${mins}px`;
+      line.style.top=`${m}px`;
       c.appendChild(line);
 
-      // clusters
+      // cluster overlapping
       arr.sort((a,b)=>a.start-b.start);
       const clusters=[];
       arr.forEach(s=>{
-        let placed=false;
+        let found=false;
         for(const cl of clusters){
           if(s.start<cl.end){
             cl.sessions.push(s);
             cl.end=new Date(Math.max(cl.end,s.end));
-            placed=true; break;
+            found=true; break;
           }
         }
-        if(!placed) clusters.push({ sessions:[s], end:s.end });
+        if(!found) clusters.push({ sessions:[s], end:s.end });
       });
       clusters.forEach(cl=>{
         const tracks=[];
         cl.sessions.forEach(s=>{
-          let ti = tracks.findIndex(t=>t[t.length-1].end<=s.start);
+          let ti=tracks.findIndex(t=>t[t.length-1].end<=s.start);
           if(ti<0){ ti=tracks.length; tracks.push([]); }
           tracks[ti].push(s);
-          s._track = ti;
+          s._track=ti;
         });
-        cl._cols = tracks.length;
+        cl._cols=tracks.length;
       });
 
-      // layout
+      // layout session blocks (room & tech only)
       const cw=c.clientWidth, lm=80, rm=10, aw=cw-lm-rm;
       arr.forEach(s=>{
-        const cl = clusters.find(c=>c.sessions.includes(s));
-        const col = s._track, cols = cl._cols;
-        const topPx = s.start.getHours()*60 + s.start.getMinutes();
-        const hPx   = (s.end - s.start)/60000;
-        const lPx   = lm + col*(aw/cols);
-        const wPx   = aw/cols - 5;
+        const cl=clusters.find(x=>x.sessions.includes(s));
+        const cols=cl._cols, col=s._track;
+        const topPx=s.start.getHours()*60+s.start.getMinutes();
+        const hPx=(s.end-s.start)/60000;
+        const leftPx=lm+col*(aw/cols);
+        const wPx=aw/cols-5;
 
         const blk=document.createElement("div");
         blk.className="session-block";
-        blk.style.top   = `${topPx}px`;
-        blk.style.height= `${hPx}px`;
-        blk.style.left  = `${lPx}px`;
-        blk.style.width = `${wPx}px`;
+        blk.style.top=`${topPx}px`;
+        blk.style.height=`${hPx}px`;
+        blk.style.left=`${leftPx}px`;
+        blk.style.width=`${wPx}px`;
         blk.style.backgroundColor = RenderModule.hashColor(s.Room,30,60);
-       blk.innerHTML = `
-  <div class="session-header">
-    <strong>Room ${s.Room}</strong> &mdash; ${s.Technician}
-  </div>
-  <div class="session-title">
-    ${s.Session}
-  </div>
-`;
-
+        blk.innerHTML = `
+          <div class="session-header">
+            <strong>Room ${s.Room}</strong> — ${s.Technician}
+          </div>
+        `;
         c.appendChild(blk);
       });
     }
   };
 
-  // — UI State & Initialization —
-  let cardData = [];
+  // — UI State & Init —
+  let cardData=[];
   const UIState = {
-    view: "card",
-    init() {
+    view:"card",
+    init(){
       DataModule.load("data.csv", sessions=>{
         cardData = sessions;
         UI.populateFilters(sessions);
         RenderModule.renderCards(sessions);
       });
-
-      document.getElementById("toggleViewBtn").onclick = ()=>{
-        this.view = (this.view==="card"?"calendar":"card");
+      document.getElementById("toggleViewBtn").onclick=()=>{
+        this.view = this.view==="card"?"calendar":"card";
         document.getElementById("toggleViewBtn").textContent =
           this.view==="card"?"View as Calendar":"View as Cards";
         document.getElementById("cardsContainer").classList.toggle("view-active", this.view==="card");
@@ -371,46 +353,41 @@
         RenderModule.renderCalendar(cardData);
         RenderModule.renderCards(cardData);
       };
-
       ["filterRoom","filterTech","searchInput","sortSelect"].forEach(id=>{
-        document.getElementById(id).oninput = ()=>{
+        document.getElementById(id).oninput = ()=> {
           RenderModule.renderCards(cardData);
           RenderModule.renderCalendar(cardData);
         };
       });
-
-      document.getElementById("resetBtn").onclick = ()=>{
+      document.getElementById("resetBtn").onclick=()=>{
         ["filterRoom","filterTech","searchInput","sortSelect"].forEach(id=>
-          document.getElementById(id).value = ""
+          document.getElementById(id).value=""
         );
         FilterModule.activeDate = FilterModule.techFilter = "";
         RenderModule.renderCards(cardData);
         RenderModule.renderCalendar(cardData);
       };
-
-      const tt = document.getElementById("themeToggle");
-      tt.onclick = ()=>{
-        const b = document.body;
-        const next = (b.getAttribute("data-theme")==="dark"?"light":"dark");
-        b.setAttribute("data-theme", next);
-        localStorage.setItem("theme", next);
-        tt.textContent = (next==="dark"?"☀️":"🌙");
+      const tt=document.getElementById("themeToggle");
+      tt.onclick=()=>{
+        const b=document.body;
+        const nxt=b.getAttribute("data-theme")==="dark"?"light":"dark";
+        b.setAttribute("data-theme",nxt);
+        localStorage.setItem("theme",nxt);
+        tt.textContent = nxt==="dark"?"☀️":"🌙";
       };
-      const saved = localStorage.getItem("theme") || "dark";
-      document.body.setAttribute("data-theme", saved);
-      document.getElementById("themeToggle").textContent = (saved==="dark"?"☀️":"🌙");
-
-      // auto-refresh
+      const saved=localStorage.getItem("theme")||"dark";
+      document.body.setAttribute("data-theme",saved);
+      document.getElementById("themeToggle").textContent = saved==="dark"?"☀️":"🌙";
       setInterval(()=>{
         RenderModule.renderCards(cardData);
         if(this.view==="calendar") RenderModule.renderCalendar(cardData);
-      }, 60000);
+      },60000);
     }
   };
 
   // — UI Helpers —
   const UI = {
-    populateFilters(sessions) {
+    populateFilters(sessions){
       const rooms=new Set(), techs=new Set(), dates=new Set();
       sessions.forEach(r=>{
         rooms.add(r.Room);
@@ -420,11 +397,9 @@
       const R=document.getElementById("filterRoom"),
             T=document.getElementById("filterTech"),
             D=document.getElementById("dayTabs");
-      rooms.forEach(v=>R.appendChild(Object.assign(document.createElement("option"),{
-        value:v, textContent:`Room ${v}` })));
-      techs.forEach(v=>T.appendChild(Object.assign(document.createElement("option"),{
-        value:v, textContent:v })));
-      D.innerHTML = "";
+      rooms.forEach(v=>R.appendChild(Object.assign(document.createElement("option"),{value:v, textContent:`Room ${v}`})));
+      techs.forEach(v=>T.appendChild(Object.assign(document.createElement("option"),{value:v, textContent:v})));
+      D.innerHTML="";
       [...dates].sort().forEach(d=>{
         const btn=document.createElement("button");
         btn.textContent=d;
@@ -438,7 +413,6 @@
     }
   };
 
-  // — Kick off on page load —
   document.addEventListener("DOMContentLoaded", ()=> UIState.init());
   </script>
 </body>
