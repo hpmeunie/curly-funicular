@@ -4,18 +4,14 @@
   <meta charset="UTF-8" />
   <title>Convention Schedule</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- PapaParse for CSV loading -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <style>
     :root {
-      --bg: #ffffff;
-      --text: #1c1c1e;
-      --card-bg: #f9f9f9;
-      --card-border: #ccc;
-      --accent: #007aff;
-      --hover-bg: #eaeaea;
+      --bg: #ffffff; --text: #1c1c1e;
+      --card-bg: #f9f9f9; --card-border: #ccc;
+      --accent: #007aff; --hover-bg: #eaeaea;
+      --now-line: #ff4d4f;
     }
     [data-theme="dark"] {
       --bg: #1c1c1e; --text: #f5f5f7;
@@ -23,100 +19,101 @@
       --accent: #0a84ff; --hover-bg: #3a3a3c;
     }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      margin: 0; padding: 1em;
+      margin:0; padding:1em;
       background: var(--bg); color: var(--text);
+      font-family:-apple-system, BlinkMacSystemFont, sans-serif;
       transition: background .3s, color .3s;
     }
-    h1 { text-align: center; margin-bottom: .5em; }
+    h1 { text-align:center; margin-bottom:.5em; }
 
-    /* Filters / controls */
     .filters {
-      display: flex; flex-wrap: wrap; justify-content: center;
-      gap: .5em; margin: 1.5em 0;
+      display:flex; flex-wrap:wrap; 
+      justify-content:center; gap:.5em; margin:1.5em 0;
     }
     input, select, button {
-      background: var(--card-bg); color: var(--text);
-      border: 1px solid var(--card-border); border-radius: 6px;
-      padding: .6em; font-size: 1em; min-width: 180px;
+      background:var(--card-bg); color:var(--text);
+      border:1px solid var(--card-border); border-radius:6px;
+      padding:.6em; font-size:1em; min-width:180px;
     }
     #themeToggle {
-      background: none; border: 1px solid var(--card-border);
-      font-size: 1.4em; cursor: pointer;
-      padding: .6em .2em; margin-left: .5em;
-      border-radius: 6px; width: 2.5em; text-align: center;
-      transition: transform .2s, background .2s;
+      background:none; border:1px solid var(--card-border);
+      font-size:1.4em; padding:.6em .2em; width:2.5em;
+      text-align:center; margin-left:.5em; border-radius:6px;
+      cursor:pointer; transition:transform .2s, background .2s;
     }
     #themeToggle:hover {
-      transform: scale(1.1); background: var(--hover-bg);
+      transform:scale(1.1); background:var(--hover-bg);
     }
-
-    /* Tabs for dates */
     .tabs {
-      display: flex; flex-wrap: wrap; justify-content: center;
-      gap: .5em; margin-top: 1em;
+      display:flex; flex-wrap:wrap; justify-content:center;
+      gap:.5em; margin-top:1em;
     }
 
-    /* Card & Calendar shared container */
-    .cards, .calendar { display: none; }
-    .view-active.cards { display: flex; flex-direction: column; gap: 1em; max-width: 600px; margin: 0 auto; }
-    .view-active.calendar { display: block; }
+    .cards, .calendar { display:none; }
+    .cards.view-active {
+      display:flex; flex-direction:column; gap:1em;
+      max-width:600px; margin:0 auto;
+    }
+    .calendar.view-active {
+      display:block;
+    }
 
-    /* Card styles */
+    /* Card styling */
     .card {
-      background: var(--card-bg); border: 1px solid var(--card-border);
-      border-radius: 12px; padding: 1em;
-      box-shadow: 0 2px 6px rgba(0,0,0,.15);
-      transition: .3s ease all; cursor: pointer;
+      background:var(--card-bg); border:1px solid var(--card-border);
+      border-radius:12px; padding:1em;
+      box-shadow:0 2px 6px rgba(0,0,0,.15);
+      transition:.3s; cursor:pointer;
     }
-    .card h3 { margin-top: 0; color: var(--accent); }
+    .card h3 { margin-top:0; color:var(--accent); }
     .badge {
-      display: inline-block; padding: .2em .6em;
-      border-radius: 6px; font-size: .8em; margin-left: .5em;
+      display:inline-block; padding:.2em .6em;
+      border-radius:6px; font-size:.8em; margin-left:.5em;
     }
     .card.active {
-      border: 2px solid var(--accent);
-      box-shadow: 0 0 8px var(--accent);
-      background: rgba(10,132,255,.1);
+      border:2px solid var(--accent);
+      background:rgba(10,132,255,.1);
+      box-shadow:0 0 8px var(--accent);
     }
     .card.completed {
-      opacity: .6; filter: grayscale(10%);
+      opacity:.6; filter:grayscale(10%);
     }
-    @media (max-width: 768px) {
-      .card.collapsed .details { display: none; }
+    @media (max-width:768px) {
+      .card.collapsed .details { display:none; }
     }
 
-    /* Calendar view container */
+    /* Calendar styling */
     .calendar-container {
-      max-width: 1000px; margin: 2em auto;
-      position: relative; border: 1px solid var(--card-border);
-      background: var(--card-bg); padding: 1em;
-      border-radius: 10px;
-      height: calc(24 * 60px); /* 24 hours * 60px per hour */
-      box-sizing: content-box;
+      position:relative; margin:2em auto;
+      max-width:1000px; height:1440px; /* 24*60px */
+      border:1px solid var(--card-border);
+      background:var(--card-bg); border-radius:10px;
+      box-sizing:content-box; overflow:hidden;
     }
     .calendar-hour {
-      position: absolute; left: 0; right: 0;
-      height: 60px; border-top: 1px solid var(--card-border);
+      position:absolute; left:0; right:0;
+      height:60px; border-top:1px solid var(--card-border);
     }
     .calendar-hour-label {
-      position: absolute; top: 0; left: 0;
-      font-size: .75em; color: var(--text); width: 70px;
-      text-align: right; padding-right: 10px;
+      position:absolute; left:0; width:70px;
+      text-align:right; padding-right:10px;
+      font-size:.75em; color:var(--text);
     }
-    /* Session blocks will get left & width from JS */
     .session-block {
-      position: absolute; padding: .2em .4em;
-      border-radius: 6px; font-size: .8em;
-      color: white; overflow: hidden;
-      box-sizing: border-box;
-      border: 1px solid var(--card-border);
+      position:absolute; padding:.2em .4em;
+      border-radius:6px; font-size:.8em;
+      color:#fff; overflow:hidden; box-sizing:border-box;
+      border:1px solid var(--card-border);
+    }
+    .current-time-line {
+      position:absolute; left:0; right:0;
+      height:2px; background:var(--now-line);
+      z-index:10;
     }
   </style>
 </head>
 
 <body data-theme="dark">
-
   <h1>Convention Schedule</h1>
 
   <div class="filters">
@@ -141,52 +138,45 @@
   <div id="calendarContainer" class="calendar calendar-container"></div>
 
   <script>
-    let cardData = [], activeDate = "", currentTechFilter = "", currentView = "card";
-
-    const cardsContainer    = document.getElementById("cardsContainer");
-    const calendarContainer = document.getElementById("calendarContainer");
-
-   function hashColor(str) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  // 40% saturation, 60% lightness for softer, less bright colors
-  return `hsl(${hash % 360}, 40%, 60%)`;
-}
-
-
-    function toggleView() {
-      currentView = currentView === "card" ? "calendar" : "card";
-      document.getElementById("toggleViewBtn").textContent =
-        currentView === "card" ? "View as Calendar" : "View as Cards";
-      cardsContainer .classList.toggle("view-active", currentView === "card");
-      calendarContainer.classList.toggle("view-active", currentView === "calendar");
-      renderCards(cardData);
-      if (currentView === "calendar") renderCalendar(cardData);
+  /* — Data Module — */
+  const DataModule = {
+    sessions: [],
+    load: function(csvPath, callback) {
+      Papa.parse(csvPath, {
+        download: true, header: true,
+        complete: res => {
+          this.sessions = res.data.filter(r => r.Session);
+          callback(this.sessions);
+        }
+      });
     }
+  };
 
-    function filterData(data) {
-      const room  = document.getElementById("filterRoom").value;
-      const tech  = currentTechFilter || document.getElementById("filterTech").value;
-      const term  = document.getElementById("searchInput").value.toLowerCase();
-      const sort  = document.getElementById("sortSelect").value;
+  /* — Filter Module — */
+  const FilterModule = {
+    activeDate: "",
+    techFilter: "",
+    getFiltered(sessions) {
+      const room = document.getElementById("filterRoom").value;
+      const tech = this.techFilter || document.getElementById("filterTech").value;
+      const term = document.getElementById("searchInput").value.toLowerCase();
+      const sort = document.getElementById("sortSelect").value;
 
-      let filtered = data.filter(r => {
-        const dateMatch = !activeDate ||
-          new Date(r["Start Time"]).toDateString() === activeDate;
-        const searchMatch =
+      let arr = sessions.filter(r => {
+        const dateMatch = !this.activeDate ||
+          new Date(r["Start Time"]).toDateString() === this.activeDate;
+        const textMatch = 
           r.Session.toLowerCase().includes(term) ||
           r.Technician.toLowerCase().includes(term) ||
           r["AV Gear"].toLowerCase().includes(term) ||
           r.Room.includes(term);
         return dateMatch &&
-               (!room  || r.Room  === room)  &&
-               (!tech  || r.Technician === tech) &&
-               searchMatch;
+               (!room || r.Room === room) &&
+               (!tech || r.Technician === tech) &&
+               textMatch;
       });
 
-      filtered.sort((a,b) => {
+      arr.sort((a,b) => {
         if (sort==="time-asc")  return new Date(a["Start Time"]) - new Date(b["Start Time"]);
         if (sort==="time-desc") return new Date(b["Start Time"]) - new Date(a["Start Time"]);
         if (sort==="room")      return a.Room.localeCompare(b.Room);
@@ -194,109 +184,41 @@
         return 0;
       });
 
-      return filtered;
+      return arr;
     }
+  };
 
-    function renderCalendar(data) {
-      calendarContainer.innerHTML = "";
-      const sessions = filterData(data).map(r => ({
-        ...r,
-        start: new Date(r["Start Time"]),
-        end:   new Date(r["End Time"])
-      }));
+  /* — Render Module — */
+  const RenderModule = {
+    hashColor(str, sat=40, light=60) {
+      let hash=0;
+      for(let c of str) hash = c.charCodeAt(0) + ((hash<<5)-hash);
+      return `hsl(${hash%360},${sat}%,${light}%)`;
+    },
+    renderCards(sessions) {
+      const container = document.getElementById("cardsContainer");
+      if (UIState.view !== "card") return;
+      container.innerHTML = "";
+      const arr = FilterModule.getFiltered(sessions);
 
-      // Draw hour lines
-      for (let h = 0; h < 24; h++) {
-        const hourDiv = document.createElement("div");
-        hourDiv.className = "calendar-hour";
-        hourDiv.style.top = `${h*60}px`;
-        const lbl = document.createElement("div");
-        lbl.className = "calendar-hour-label";
-        lbl.textContent = String(h).padStart(2,"0")+":00";
-        hourDiv.appendChild(lbl);
-        calendarContainer.appendChild(hourDiv);
-      }
-
-      // Build clusters of overlapping sessions
-      sessions.sort((a,b)=>a.start-b.start);
-      const clusters = [];
-      sessions.forEach(s => {
-        let placed=false;
-        for (const cl of clusters) {
-          if (s.start < cl.end) {
-            cl.sessions.push(s);
-            cl.end = new Date(Math.max(cl.end, s.end));
-            placed=true; break;
-          }
-        }
-        if (!placed) clusters.push({sessions:[s], end:s.end});
-      });
-
-      // Assign tracks within clusters
-      clusters.forEach(cl => {
-        const tracks = [];
-        cl.sessions.forEach(s => {
-          let ti = tracks.findIndex(t => t[t.length-1].end <= s.start);
-          if (ti === -1) { ti = tracks.length; tracks.push([]); }
-          tracks[ti].push(s);
-          s._track = ti;
-        });
-        cl._total = tracks.length;
-      });
-
-      // Layout each session
-      const cw = calendarContainer.clientWidth;
-      const leftMargin = 80;
-      const rightMargin = 10;
-      const availW = cw - leftMargin - rightMargin;
-      sessions.forEach(s => {
-        // find its cluster
-        const cl = clusters.find(c => c.sessions.includes(s));
-        const cols = cl._total, col = s._track;
-        const topPx    = (s.start.getHours()*60 + s.start.getMinutes());
-        const heightPx = ((s.end - s.start)/60000);
-        const leftPx   = leftMargin + (col*(availW/cols));
-        const widthPx  = availW/cols - 5;
-
-        const blk = document.createElement("div");
-        blk.className = "session-block";
-        blk.style.top    = topPx   +"px";
-        blk.style.height = heightPx+"px";
-        blk.style.left   = leftPx  +"px";
-        blk.style.width  = widthPx +"px";
-        const roomColor = hashColor(s.Room);
-blk.style.backgroundColor = roomColor;
-
-        blk.innerHTML = `
-          <strong>${s.Session}</strong><br>
-          ${s.Room}<br>
-          <em>${s.Technician}</em>
-        `;
-        calendarContainer.appendChild(blk);
-      });
-    }
-
-    function renderCards(data) {
-      if (currentView!=="card") return;
-      cardsContainer.innerHTML = "";
-      const arr = filterData(data);
-      arr.forEach((r,i,all)=>{
-        const c = document.createElement("div");
-        const st = new Date(r["Start Time"]), en = new Date(r["End Time"]), now=new Date();
+      arr.forEach((r,i,all) => {
+        const card = document.createElement("div");
+        const st = new Date(r["Start Time"]), en = new Date(r["End Time"]), now = new Date();
         let cls="", txt;
         if (now < st) txt = `Starts at ${st.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
-        else if (now >= en) { cls="completed"; txt="Completed"; }
+        else if (now >= en){ cls="completed"; txt="Completed"; }
         else {
           cls="active";
           const rem = Math.ceil((en-now)/60000);
-          txt=`${rem} minute${rem===1?"":"s"} remaining`;
+          txt = `${rem} minute${rem===1?"":"s"} remaining`;
         }
-        const color = hashColor(r.Technician);
-        const conflict = all.some((o,j)=> j!==i && o.Technician===r.Technician &&
+        const color = this.hashColor(r.Technician);
+        const conflict = all.some((o,j)=>
+          j!==i && o.Technician===r.Technician &&
           new Date(o["Start Time"])<en && new Date(o["End Time"])>st
         );
-        c.className = `card ${cls}` + (window.innerWidth<768?" collapsed":"");
-        c.innerHTML=`
+        card.className = `card ${cls}` + (window.innerWidth<768?" collapsed":"");
+        card.innerHTML=`
           <h3>${r.Session}</h3>
           <p><strong>Room:</strong> ${r.Room}</p>
           <p><strong>Time:</strong> ${st.toLocaleString([],{
@@ -311,87 +233,194 @@ blk.style.backgroundColor = roomColor;
               <span class="badge tech-filter" style="background:${color};">${r.Technician}</span>
               ${conflict?'<span class="badge" style="background:#f00;color:#fff">Conflict</span>':''}
             </p>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width:${cls==='active'?((now-st)/(en-st)*100):100}%"></div>
-            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${
+              cls==='active'?((now-st)/(en-st)*100):100
+            }%"></div></div>
             <div class="progress-label">${txt}</div>
           </div>
         `;
-        c.addEventListener("click",()=> window.innerWidth<768 && c.classList.toggle("collapsed"));
-        cardsContainer.appendChild(c);
+        card.onclick = ()=> window.innerWidth<768 && card.classList.toggle("collapsed");
+        container.appendChild(card);
       });
-      document.querySelectorAll(".tech-filter").forEach(b=>{
-        b.onclick=e=>{
+
+      document.querySelectorAll(".tech-filter").forEach(badge => {
+        badge.onclick = e => {
           e.stopPropagation();
-          const t=b.textContent;
-          currentTechFilter = currentTechFilter===t?"":t;
-          renderCards(cardData);
-          if(currentView==="calendar") renderCalendar(cardData);
+          const t = badge.textContent;
+          FilterModule.techFilter = FilterModule.techFilter===t?"":t;
+          this.renderCards(cardData);
         };
       });
-    }
+    },
 
-    function populateFilters(data) {
-      const rs=new Set(), ts=new Set(), ds=new Set();
-      data.forEach(r=>{
-        rs.add(r.Room);
-        ts.add(r.Technician);
-        ds.add(new Date(r["Start Time"]).toDateString());
+    renderCalendar(sessions) {
+      const container = document.getElementById("calendarContainer");
+      if (UIState.view !== "calendar") return;
+      container.innerHTML = "";
+
+      const arr = FilterModule.getFiltered(sessions)
+        .map(r => ({...r, start:new Date(r["Start Time"]), end:new Date(r["End Time"])}));
+
+      // draw hours
+      for(let h=0;h<24;h++){
+        const hr = document.createElement("div");
+        hr.className="calendar-hour";
+        hr.style.top=`${h*60}px`;
+        const lbl=document.createElement("div");
+        lbl.className="calendar-hour-label";
+        lbl.textContent=`${String(h).padStart(2,"0")}:00`;
+        hr.appendChild(lbl);
+        container.appendChild(hr);
+      }
+
+      // current time line
+      const now=new Date();
+      const mins=now.getHours()*60+now.getMinutes();
+      const nowLine=document.createElement("div");
+      nowLine.className="current-time-line";
+      nowLine.style.top=`${mins}px`;
+      container.appendChild(nowLine);
+
+      // clusters & tracks
+      arr.sort((a,b)=>a.start-b.start);
+      const clusters=[];
+      arr.forEach(s=>{
+        let placed=false;
+        for(const cl of clusters){
+          if(s.start<cl.end){
+            cl.sessions.push(s);
+            cl.end = new Date(Math.max(cl.end,s.end));
+            placed=true; break;
+          }
+        }
+        if(!placed) clusters.push({sessions:[s],end:s.end});
+      });
+      clusters.forEach(cl=>{
+        const tracks=[];
+        cl.sessions.forEach(s=>{
+          let idx=tracks.findIndex(t=>t[t.length-1].end<=s.start);
+          if(idx===-1){ idx=tracks.length; tracks.push([]); }
+          tracks[idx].push(s);
+          s._track = idx;
+        });
+        cl._total = tracks.length;
+      });
+
+      // draw blocks
+      const cw = container.clientWidth, leftMargin=80, rightMargin=10;
+      const availW = cw-leftMargin-rightMargin;
+      arr.forEach(s=>{
+        const cl=clusters.find(c=>c.sessions.includes(s));
+        const cols=cl._total, col=s._track;
+        const topPx=(s.start.getHours()*60+s.start.getMinutes());
+        const heightPx=(s.end-s.start)/60000;
+        const leftPx=leftMargin + col*(availW/cols);
+        const widthPx=availW/cols - 5;
+
+        const blk=document.createElement("div");
+        blk.className="session-block";
+        blk.style.top=topPx+"px";
+        blk.style.height=heightPx+"px";
+        blk.style.left=leftPx+"px";
+        blk.style.width=widthPx+"px";
+        blk.style.backgroundColor = this.hashColor(s.Room,30,60);
+
+        blk.innerHTML=`<strong>${s.Session}</strong><br>${s.Room}<br>${s.Technician}`;
+        container.appendChild(blk);
+      });
+    }
+  };
+
+  /* — UI & App State — */
+  const UIState = {
+    view: "card",
+    init() {
+      DataModule.load("data.csv", sessions=>{
+        UI.initFiltersAndTabs(sessions);
+        RenderModule.renderCards(sessions);
+      });
+
+      document.getElementById("toggleViewBtn").onclick = ()=> {
+        UIState.view = UIState.view==="card"?"calendar":"card";
+        document.getElementById("toggleViewBtn").textContent =
+          UIState.view==="card"?"View as Calendar":"View as Cards";
+        document.getElementById("cardsContainer").classList.toggle("view-active", UIState.view==="card");
+        document.getElementById("calendarContainer").classList.toggle("view-active", UIState.view==="calendar");
+        RenderModule.renderCalendar(cardData);
+        RenderModule.renderCards(cardData);
+      };
+
+      ["filterRoom","filterTech","searchInput","sortSelect"].forEach(id=>{
+        document.getElementById(id).oninput = () => {
+          RenderModule.renderCards(cardData);
+          RenderModule.renderCalendar(cardData);
+        };
+      });
+      document.getElementById("resetBtn").onclick = () =>{
+        ["filterRoom","filterTech","searchInput","sortSelect"].forEach(id=>document.getElementById(id).value="");
+        FilterModule.activeDate = FilterModule.techFilter = "";
+        RenderModule.renderCards(cardData);
+        RenderModule.renderCalendar(cardData);
+      };
+
+      const tt = document.getElementById("themeToggle");
+      tt.onclick = ()=>{
+        const body=document.body;
+        const next = body.getAttribute("data-theme")==="dark"?"light":"dark";
+        body.setAttribute("data-theme", next);
+        localStorage.setItem("theme", next);
+        tt.textContent = next==="dark"?"☀️":"🌙";
+      };
+      const saved = localStorage.getItem("theme") || "dark";
+      document.body.setAttribute("data-theme", saved);
+      document.getElementById("themeToggle").textContent = saved==="dark"?"☀️":"🌙";
+
+      // auto-refresh
+      setInterval(()=> {
+        RenderModule.renderCards(cardData);
+        if(UIState.view==="calendar") RenderModule.renderCalendar(cardData);
+      }, 60000);
+    }
+  };
+
+  /* — Helper to populate filters & tabs — */
+  const UI = {
+    populateFilters(sessions) {
+      const rooms=new Set(), techs=new Set(), dates=new Set();
+      sessions.forEach(r=>{
+        rooms.add(r.Room);
+        techs.add(r.Technician);
+        dates.add(new Date(r["Start Time"]).toDateString());
       });
       const R=document.getElementById("filterRoom"), T=document.getElementById("filterTech"), D=document.getElementById("dayTabs");
-      rs.forEach(r=>R.appendChild(Object.assign(document.createElement("option"),{value:r,textContent:`Room ${r}`})));
-      ts.forEach(t=>T.appendChild(Object.assign(document.createElement("option"),{value:t,textContent:t})));
+      rooms.forEach(v=>R.appendChild(Object.assign(document.createElement("option"),{value:v,textContent:`Room ${v}`})));
+      techs.forEach(v=>T.appendChild(Object.assign(document.createElement("option"),{value:v,textContent:v})));
       D.innerHTML="";
-      [...ds].sort().forEach(d=>{
-        const btn=document.createElement("button");
-        btn.textContent=d;
-        btn.onclick=()=>{
-          activeDate=d;
-          renderCards(cardData);
-          if(currentView==="calendar") renderCalendar(cardData);
+      [...dates].sort().forEach(d=>{
+        const btn = document.createElement("button");
+        btn.textContent = d;
+        btn.onclick = ()=>{
+          FilterModule.activeDate = d;
+          RenderModule.renderCards(cardData);
+          if(UIState.view==="calendar") RenderModule.renderCalendar(cardData);
         };
         D.appendChild(btn);
       });
+    },
+    initFiltersAndTabs(sessions) {
+      this.populateFilters(sessions);
+      document.getElementById("cardsContainer").classList.add("view-active");
+      UIState.init();
     }
+  };
 
-    Papa.parse("data.csv", { download:true, header:true, complete:res=>{
-      cardData=res.data.filter(r=>r.Session);
-      populateFilters(cardData);
-      renderCards(cardData);
-    }});
+  // Start the app
+  let cardData = [];
+  DataModule.load("data.csv", data=>{ cardData = data; UI.populateFilters(data); });
 
-    document.getElementById("toggleViewBtn").onclick=toggleView;
-    ["filterRoom","filterTech","searchInput","sortSelect"].forEach(id=>{
-      document.getElementById(id).addEventListener("change",()=>{
-        renderCards(cardData);
-        if(currentView==="calendar") renderCalendar(cardData);
-      });
-    });
-    document.getElementById("resetBtn").onclick=()=>{
-      ["filterRoom","filterTech","searchInput","sortSelect"].forEach(id=>{
-        document.getElementById(id).value="";
-      });
-      activeDate=currentTechFilter="";
-      renderCards(cardData);
-      if(currentView==="calendar") renderCalendar(cardData);
-    };
-
-    const tt=document.getElementById("themeToggle");
-    tt.onclick=()=> {
-      const b=document.body, next=b.getAttribute("data-theme")==="dark"?"light":"dark";
-      b.setAttribute("data-theme",next);
-      localStorage.setItem("theme",next);
-      tt.textContent = next==="dark"?"☀️":"🌙";
-    };
-    const st=localStorage.getItem("theme")||"dark";
-    document.body.setAttribute("data-theme",st);
-    tt.textContent = st==="dark"?"☀️":"🌙";
-
-    // auto-refresh active bars
-    setInterval(()=>{
-      renderCards(cardData);
-      if(currentView==="calendar") renderCalendar(cardData);
-    },60000);
+  document.addEventListener("DOMContentLoaded", ()=>{});  
+  // immediate call
+  UIState.init();
   </script>
 </body>
 </html>
