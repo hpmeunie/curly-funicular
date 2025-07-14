@@ -61,17 +61,19 @@
       min-width: 180px;
     }
 
-    #themeToggle {
+   #themeToggle {
   background: none;
   border: 1px solid var(--card-border);
   font-size: 1.4em;
   cursor: pointer;
-  padding: 0.15em 0.3em;
+  padding: 0.6em 0.2em;  /* taller height, narrow width */
   color: var(--text);
   align-self: center;
   margin-left: 0.5em;
   border-radius: 6px;
   transition: transform 0.2s ease, background 0.2s;
+  width: 2.5em; /* optional fixed width for better consistency */
+  text-align: center;
 }
 
 #themeToggle:hover {
