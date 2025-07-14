@@ -62,20 +62,23 @@
     }
 
     #themeToggle {
-      background: none;
-      border: none;
-      font-size: 1.6em;
-      cursor: pointer;
-      padding: 0.2em 0.4em;
-      color: var(--text);
-      align-self: center;
-      margin-left: 0.5em;
-      transition: transform 0.2s ease;
-    }
+  background: none;
+  border: 1px solid var(--card-border);
+  font-size: 1.6em;
+  cursor: pointer;
+  padding: 0.2em 0.4em;
+  color: var(--text);
+  align-self: center;
+  margin-left: 0.5em;
+  border-radius: 6px;
+  transition: transform 0.2s ease, background 0.2s;
+}
 
-    #themeToggle:hover {
-      transform: scale(1.1);
-    }
+#themeToggle:hover {
+  transform: scale(1.1);
+  background-color: var(--hover-bg);
+}
+
 
     .tabs {
       display: flex;
@@ -255,8 +258,8 @@
         card.innerHTML = `
           <h3>${row.Session}</h3>
           <p><strong>Room:</strong> ${row.Room}</p>
-          <p><strong>Start:</strong> ${row["Start Time"]}</p>
-          <p><strong>End:</strong> ${row["End Time"]}</p>
+         <p><strong>Start:</strong> ${new Date(row["Start Time"]).toLocaleString([], { weekday: 'long', hour: 'numeric', minute: '2-digit', hour12: true })}</p>
+<p><strong>End:</strong> ${new Date(row["End Time"]).toLocaleString([], { weekday: 'long', hour: 'numeric', minute: '2-digit', hour12: true })}</p>
           <p><strong>AV Gear:</strong> ${row["AV Gear"]}</p>
           <p><strong>Technician:</strong> <span class="badge" style="background:${techColor};color:#000">${row.Technician}</span>
           ${hasConflict ? '<span class="badge" style="background:#f00;color:#fff">Conflict</span>' : ''}
