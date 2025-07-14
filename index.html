@@ -109,6 +109,18 @@
       color: white; overflow: hidden; box-sizing: border-box;
       border: 1px solid var(--card-border);
     }
+    .session-header {
+  font-size: 0.75em;
+  line-height: 1.2;
+  margin-bottom: 0.3em;
+}
+
+.session-title {
+  font-weight: bold;
+  font-size: 0.9em;
+  line-height: 1.2;
+}
+
     .current-time-line {
       position: absolute; left: 0; right: 0;
       height: 2px; background: var(--now-line);
@@ -325,7 +337,15 @@
         blk.style.left  = `${lPx}px`;
         blk.style.width = `${wPx}px`;
         blk.style.backgroundColor = RenderModule.hashColor(s.Room,30,60);
-        blk.innerHTML = `<strong>${s.Session}</strong><br>${s.Room}<br>${s.Technician}`;
+       blk.innerHTML = `
+  <div class="session-header">
+    <strong>Room ${s.Room}</strong> &mdash; ${s.Technician}
+  </div>
+  <div class="session-title">
+    ${s.Session}
+  </div>
+`;
+
         c.appendChild(blk);
       });
     }
