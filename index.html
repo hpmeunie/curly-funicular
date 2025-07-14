@@ -110,6 +110,7 @@
       border-radius: 6px; font-size: .8em;
       color: white; overflow: hidden;
       box-sizing: border-box;
+      border: 1px solid var(--card-border);
     }
   </style>
 </head>
@@ -261,7 +262,8 @@
         blk.style.height = heightPx+"px";
         blk.style.left   = leftPx  +"px";
         blk.style.width  = widthPx +"px";
-        blk.style.backgroundColor = hashColor(s.Technician);
+        const roomColor = hashColor(s.Room);
+blk.style.backgroundColor = roomColor;
 
         blk.innerHTML = `
           <strong>${s.Session}</strong><br>
