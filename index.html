@@ -19,101 +19,106 @@
       --accent: #0a84ff; --hover-bg: #3a3a3c;
     }
     body {
-      margin:0; padding:1em;
+      margin: 0; padding: 1em;
       background: var(--bg); color: var(--text);
-      font-family:-apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       transition: background .3s, color .3s;
     }
-    h1 { text-align:center; margin-bottom:.5em; }
-
+    h1 {
+      text-align: center; margin-bottom: .5em;
+    }
     .filters {
-      display:flex; flex-wrap:wrap; 
-      justify-content:center; gap:.5em; margin:1.5em 0;
+      display: flex; flex-wrap: wrap;
+      justify-content: center; gap: .5em;
+      margin: 1.5em 0;
     }
     input, select, button {
-      background:var(--card-bg); color:var(--text);
-      border:1px solid var(--card-border); border-radius:6px;
-      padding:.6em; font-size:1em; min-width:180px;
+      background: var(--card-bg); color: var(--text);
+      border: 1px solid var(--card-border); border-radius: 6px;
+      padding: .6em; font-size: 1em; min-width: 180px;
     }
     #themeToggle {
-      background:none; border:1px solid var(--card-border);
-      font-size:1.4em; padding:.6em .2em; width:2.5em;
-      text-align:center; margin-left:.5em; border-radius:6px;
-      cursor:pointer; transition:transform .2s, background .2s;
+      background: none; border: 1px solid var(--card-border);
+      font-size: 1.4em; padding: .6em .2em; width: 2.5em;
+      text-align: center; margin-left: .5em; border-radius: 6px;
+      cursor: pointer; transition: transform .2s, background .2s;
     }
     #themeToggle:hover {
-      transform:scale(1.1); background:var(--hover-bg);
+      transform: scale(1.1); background: var(--hover-bg);
     }
     .tabs {
-      display:flex; flex-wrap:wrap; justify-content:center;
-      gap:.5em; margin-top:1em;
+      display: flex; flex-wrap: wrap;
+      justify-content: center; gap: .5em;
+      margin-top: 1em;
     }
 
-    .cards, .calendar { display:none; }
+    .cards, .calendar { display: none; }
     .cards.view-active {
-      display:flex; flex-direction:column; gap:1em;
-      max-width:600px; margin:0 auto;
+      display: flex; flex-direction: column; gap: 1em;
+      max-width: 600px; margin: 0 auto;
     }
     .calendar.view-active {
-      display:block;
+      display: block;
     }
 
-    /* Card styling */
     .card {
-      background:var(--card-bg); border:1px solid var(--card-border);
-      border-radius:12px; padding:1em;
-      box-shadow:0 2px 6px rgba(0,0,0,.15);
-      transition:.3s; cursor:pointer;
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 12px; padding: 1em;
+      box-shadow: 0 2px 6px rgba(0,0,0,.15);
+      transition: .3s; cursor: pointer;
     }
-    .card h3 { margin-top:0; color:var(--accent); }
+    .card h3 {
+      margin-top: 0; color: var(--accent);
+    }
     .badge {
-      display:inline-block; padding:.2em .6em;
-      border-radius:6px; font-size:.8em; margin-left:.5em;
+      display: inline-block; padding: .2em .6em;
+      border-radius: 6px; font-size: .8em;
+      margin-left: .5em;
     }
     .card.active {
-      border:2px solid var(--accent);
-      background:rgba(10,132,255,.1);
-      box-shadow:0 0 8px var(--accent);
+      border: 2px solid var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      background: rgba(10,132,255,.1);
     }
     .card.completed {
-      opacity:.6; filter:grayscale(10%);
+      opacity: .6; filter: grayscale(10%);
     }
-    @media (max-width:768px) {
-      .card.collapsed .details { display:none; }
+    @media (max-width: 768px) {
+      .card.collapsed .details { display: none; }
     }
 
-    /* Calendar styling */
     .calendar-container {
-      position:relative; margin:2em auto;
-      max-width:1000px; height:1440px; /* 24*60px */
-      border:1px solid var(--card-border);
-      background:var(--card-bg); border-radius:10px;
-      box-sizing:content-box; overflow:hidden;
+      position: relative; margin: 2em auto;
+      max-width: 1000px; height: 1440px; /* 24*60px */
+      border: 1px solid var(--card-border);
+      background: var(--card-bg); border-radius: 10px;
+      box-sizing: content-box; overflow: hidden;
     }
     .calendar-hour {
-      position:absolute; left:0; right:0;
-      height:60px; border-top:1px solid var(--card-border);
+      position: absolute; left: 0; right: 0;
+      height: 60px; border-top: 1px solid var(--card-border);
     }
     .calendar-hour-label {
-      position:absolute; left:0; width:70px;
-      text-align:right; padding-right:10px;
-      font-size:.75em; color:var(--text);
+      position: absolute; left: 0; width: 70px;
+      text-align: right; padding-right: 10px;
+      font-size: .75em; color: var(--text);
     }
     .session-block {
-      position:absolute; padding:.2em .4em;
-      border-radius:6px; font-size:.8em;
-      color:#fff; overflow:hidden; box-sizing:border-box;
-      border:1px solid var(--card-border);
+      position: absolute; padding: .2em .4em;
+      border-radius: 6px; font-size: .8em;
+      color: white; overflow: hidden; box-sizing: border-box;
+      border: 1px solid var(--card-border);
     }
     .current-time-line {
-      position:absolute; left:0; right:0;
-      height:2px; background:var(--now-line);
-      z-index:10;
+      position: absolute; left: 0; right: 0;
+      height: 2px; background: var(--now-line);
+      z-index: 10;
     }
   </style>
 </head>
 
 <body data-theme="dark">
+
   <h1>Convention Schedule</h1>
 
   <div class="filters">
@@ -138,104 +143,101 @@
   <div id="calendarContainer" class="calendar calendar-container"></div>
 
   <script>
-  /* — Data Module — */
+  // — Data Module —
   const DataModule = {
-    sessions: [],
-    load: function(csvPath, callback) {
-      Papa.parse(csvPath, {
-        download: true, header: true,
-        complete: res => {
-          this.sessions = res.data.filter(r => r.Session);
-          callback(this.sessions);
-        }
+    load(path, cb) {
+      Papa.parse(path, { download: true, header: true,
+        complete: res => cb(res.data.filter(r=>r.Session)) 
       });
     }
   };
 
-  /* — Filter Module — */
+  // — Filter Module —
   const FilterModule = {
     activeDate: "",
     techFilter: "",
-    getFiltered(sessions) {
+    get(sessions) {
       const room = document.getElementById("filterRoom").value;
       const tech = this.techFilter || document.getElementById("filterTech").value;
       const term = document.getElementById("searchInput").value.toLowerCase();
       const sort = document.getElementById("sortSelect").value;
 
       let arr = sessions.filter(r => {
-        const dateMatch = !this.activeDate ||
+        const dateOk = !this.activeDate ||
           new Date(r["Start Time"]).toDateString() === this.activeDate;
-        const textMatch = 
+        const textOk =
           r.Session.toLowerCase().includes(term) ||
           r.Technician.toLowerCase().includes(term) ||
           r["AV Gear"].toLowerCase().includes(term) ||
           r.Room.includes(term);
-        return dateMatch &&
-               (!room || r.Room === room) &&
-               (!tech || r.Technician === tech) &&
-               textMatch;
+        return dateOk && (!room||r.Room===room) && (!tech||r.Technician===tech) && textOk;
       });
 
-      arr.sort((a,b) => {
-        if (sort==="time-asc")  return new Date(a["Start Time"]) - new Date(b["Start Time"]);
-        if (sort==="time-desc") return new Date(b["Start Time"]) - new Date(a["Start Time"]);
-        if (sort==="room")      return a.Room.localeCompare(b.Room);
-        if (sort==="tech")      return a.Technician.localeCompare(b.Technician);
+      arr.sort((a,b)=>{
+        if(sort==="time-asc")  return new Date(a["Start Time"])-new Date(b["Start Time"]);
+        if(sort==="time-desc") return new Date(b["Start Time"])-new Date(a["Start Time"]);
+        if(sort==="room")      return a.Room.localeCompare(b.Room);
+        if(sort==="tech")      return a.Technician.localeCompare(b.Technician);
         return 0;
       });
-
       return arr;
     }
   };
 
-  /* — Render Module — */
+  // — Render Module —
   const RenderModule = {
-    hashColor(str, sat=40, light=60) {
-      let hash=0;
-      for(let c of str) hash = c.charCodeAt(0) + ((hash<<5)-hash);
-      return `hsl(${hash%360},${sat}%,${light}%)`;
+    hashColor(str,sat=40,light=60){
+      let h=0; for(let c of str) h=c.charCodeAt(0)+((h<<5)-h);
+      return `hsl(${h%360},${sat}%,${light}%)`;
     },
-    renderCards(sessions) {
+    renderCards(sessions){
+      if(UIState.view!=="card") return;
       const container = document.getElementById("cardsContainer");
-      if (UIState.view !== "card") return;
       container.innerHTML = "";
-      const arr = FilterModule.getFiltered(sessions);
+      const arr = FilterModule.get(sessions);
 
-      arr.forEach((r,i,all) => {
+      arr.forEach((r,i,all)=>{
         const card = document.createElement("div");
-        const st = new Date(r["Start Time"]), en = new Date(r["End Time"]), now = new Date();
+        const st=new Date(r["Start Time"]), en=new Date(r["End Time"]), now=new Date();
         let cls="", txt;
-        if (now < st) txt = `Starts at ${st.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
-        else if (now >= en){ cls="completed"; txt="Completed"; }
-        else {
+        if(now<st) txt=`Starts at ${st.toLocaleTimeString([],{
+          hour:"2-digit",minute:"2-digit"
+        })}`;
+        else if(now>=en){ cls="completed"; txt="Completed"; }
+        else{
           cls="active";
-          const rem = Math.ceil((en-now)/60000);
-          txt = `${rem} minute${rem===1?"":"s"} remaining`;
+          const rem=Math.ceil((en-now)/60000);
+          txt=`${rem} minute${rem===1?"":"s"} remaining`;
         }
         const color = this.hashColor(r.Technician);
         const conflict = all.some((o,j)=>
-          j!==i && o.Technician===r.Technician &&
-          new Date(o["Start Time"])<en && new Date(o["End Time"])>st
+          j!==i&&o.Technician===r.Technician&&
+          new Date(o["Start Time"])<en&&new Date(o["End Time"])>st
         );
-        card.className = `card ${cls}` + (window.innerWidth<768?" collapsed":"");
+
+        card.className=`card ${cls}`+(window.innerWidth<768?" collapsed":"");
         card.innerHTML=`
           <h3>${r.Session}</h3>
           <p><strong>Room:</strong> ${r.Room}</p>
           <p><strong>Time:</strong> ${st.toLocaleString([],{
-            weekday:'long',hour:'numeric',minute:'2-digit',hour12:true
+            weekday:"long",hour:"numeric",minute:"2-digit",hour12:true
           })}</p>
           <div class="details">
             <p><strong>End:</strong> ${en.toLocaleString([],{
-              weekday:'long',hour:'numeric',minute:'2-digit',hour12:true
+              weekday:"long",hour:"numeric",minute:"2-digit",hour12:true
             })}</p>
             <p><strong>AV Gear:</strong> ${r["AV Gear"]}</p>
             <p><strong>Technician:</strong>
               <span class="badge tech-filter" style="background:${color};">${r.Technician}</span>
               ${conflict?'<span class="badge" style="background:#f00;color:#fff">Conflict</span>':''}
             </p>
-            <div class="progress-bar"><div class="progress-fill" style="width:${
-              cls==='active'?((now-st)/(en-st)*100):100
-            }%"></div></div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width:${
+                cls==="active"
+                  ? ((now-st)/(en-st)*100)
+                  : 100
+              }%"></div>
+            </div>
             <div class="progress-label">${txt}</div>
           </div>
         `;
@@ -243,45 +245,45 @@
         container.appendChild(card);
       });
 
-      document.querySelectorAll(".tech-filter").forEach(badge => {
-        badge.onclick = e => {
+      document.querySelectorAll(".tech-filter").forEach(badge=>{
+        badge.onclick = e=>{
           e.stopPropagation();
-          const t = badge.textContent;
-          FilterModule.techFilter = FilterModule.techFilter===t?"":t;
+          const t=badge.textContent;
+          FilterModule.techFilter = (FilterModule.techFilter===t?"":t);
           this.renderCards(cardData);
         };
       });
     },
 
-    renderCalendar(sessions) {
-      const container = document.getElementById("calendarContainer");
-      if (UIState.view !== "calendar") return;
-      container.innerHTML = "";
+    renderCalendar(sessions){
+      if(UIState.view!=="calendar") return;
+      const c = document.getElementById("calendarContainer");
+      c.innerHTML = "";
 
-      const arr = FilterModule.getFiltered(sessions)
-        .map(r => ({...r, start:new Date(r["Start Time"]), end:new Date(r["End Time"])}));
+      const arr = FilterModule.get(sessions)
+        .map(r=>({ ...r, start:new Date(r["Start Time"]), end:new Date(r["End Time"]) }));
 
-      // draw hours
-      for(let h=0;h<24;h++){
+      // hours
+      for(let h=0; h<24; h++){
         const hr = document.createElement("div");
-        hr.className="calendar-hour";
-        hr.style.top=`${h*60}px`;
-        const lbl=document.createElement("div");
-        lbl.className="calendar-hour-label";
-        lbl.textContent=`${String(h).padStart(2,"0")}:00`;
+        hr.className = "calendar-hour";
+        hr.style.top = `${h*60}px`;
+        const lbl = document.createElement("div");
+        lbl.className = "calendar-hour-label";
+        lbl.textContent = `${String(h).padStart(2,"0")}:00`;
         hr.appendChild(lbl);
-        container.appendChild(hr);
+        c.appendChild(hr);
       }
 
-      // current time line
+      // now line
       const now=new Date();
       const mins=now.getHours()*60+now.getMinutes();
-      const nowLine=document.createElement("div");
-      nowLine.className="current-time-line";
-      nowLine.style.top=`${mins}px`;
-      container.appendChild(nowLine);
+      const line=document.createElement("div");
+      line.className="current-time-line";
+      line.style.top=`${mins}px`;
+      c.appendChild(line);
 
-      // clusters & tracks
+      // clusters
       arr.sort((a,b)=>a.start-b.start);
       const clusters=[];
       arr.forEach(s=>{
@@ -289,75 +291,78 @@
         for(const cl of clusters){
           if(s.start<cl.end){
             cl.sessions.push(s);
-            cl.end = new Date(Math.max(cl.end,s.end));
+            cl.end=new Date(Math.max(cl.end,s.end));
             placed=true; break;
           }
         }
-        if(!placed) clusters.push({sessions:[s],end:s.end});
+        if(!placed) clusters.push({ sessions:[s], end:s.end });
       });
       clusters.forEach(cl=>{
         const tracks=[];
         cl.sessions.forEach(s=>{
-          let idx=tracks.findIndex(t=>t[t.length-1].end<=s.start);
-          if(idx===-1){ idx=tracks.length; tracks.push([]); }
-          tracks[idx].push(s);
-          s._track = idx;
+          let ti = tracks.findIndex(t=>t[t.length-1].end<=s.start);
+          if(ti<0){ ti=tracks.length; tracks.push([]); }
+          tracks[ti].push(s);
+          s._track = ti;
         });
-        cl._total = tracks.length;
+        cl._cols = tracks.length;
       });
 
-      // draw blocks
-      const cw = container.clientWidth, leftMargin=80, rightMargin=10;
-      const availW = cw-leftMargin-rightMargin;
+      // layout
+      const cw=c.clientWidth, lm=80, rm=10, aw=cw-lm-rm;
       arr.forEach(s=>{
-        const cl=clusters.find(c=>c.sessions.includes(s));
-        const cols=cl._total, col=s._track;
-        const topPx=(s.start.getHours()*60+s.start.getMinutes());
-        const heightPx=(s.end-s.start)/60000;
-        const leftPx=leftMargin + col*(availW/cols);
-        const widthPx=availW/cols - 5;
+        const cl = clusters.find(c=>c.sessions.includes(s));
+        const col = s._track, cols = cl._cols;
+        const topPx = s.start.getHours()*60 + s.start.getMinutes();
+        const hPx   = (s.end - s.start)/60000;
+        const lPx   = lm + col*(aw/cols);
+        const wPx   = aw/cols - 5;
 
         const blk=document.createElement("div");
         blk.className="session-block";
-        blk.style.top=topPx+"px";
-        blk.style.height=heightPx+"px";
-        blk.style.left=leftPx+"px";
-        blk.style.width=widthPx+"px";
-        blk.style.backgroundColor = this.hashColor(s.Room,30,60);
-
-        blk.innerHTML=`<strong>${s.Session}</strong><br>${s.Room}<br>${s.Technician}`;
-        container.appendChild(blk);
+        blk.style.top   = `${topPx}px`;
+        blk.style.height= `${hPx}px`;
+        blk.style.left  = `${lPx}px`;
+        blk.style.width = `${wPx}px`;
+        blk.style.backgroundColor = RenderModule.hashColor(s.Room,30,60);
+        blk.innerHTML = `<strong>${s.Session}</strong><br>${s.Room}<br>${s.Technician}`;
+        c.appendChild(blk);
       });
     }
   };
 
-  /* — UI & App State — */
+  // — UI State & Initialization —
+  let cardData = [];
   const UIState = {
     view: "card",
     init() {
       DataModule.load("data.csv", sessions=>{
-        UI.initFiltersAndTabs(sessions);
+        cardData = sessions;
+        UI.populateFilters(sessions);
         RenderModule.renderCards(sessions);
       });
 
-      document.getElementById("toggleViewBtn").onclick = ()=> {
-        UIState.view = UIState.view==="card"?"calendar":"card";
+      document.getElementById("toggleViewBtn").onclick = ()=>{
+        this.view = (this.view==="card"?"calendar":"card");
         document.getElementById("toggleViewBtn").textContent =
-          UIState.view==="card"?"View as Calendar":"View as Cards";
-        document.getElementById("cardsContainer").classList.toggle("view-active", UIState.view==="card");
-        document.getElementById("calendarContainer").classList.toggle("view-active", UIState.view==="calendar");
+          this.view==="card"?"View as Calendar":"View as Cards";
+        document.getElementById("cardsContainer").classList.toggle("view-active", this.view==="card");
+        document.getElementById("calendarContainer").classList.toggle("view-active", this.view==="calendar");
         RenderModule.renderCalendar(cardData);
         RenderModule.renderCards(cardData);
       };
 
       ["filterRoom","filterTech","searchInput","sortSelect"].forEach(id=>{
-        document.getElementById(id).oninput = () => {
+        document.getElementById(id).oninput = ()=>{
           RenderModule.renderCards(cardData);
           RenderModule.renderCalendar(cardData);
         };
       });
-      document.getElementById("resetBtn").onclick = () =>{
-        ["filterRoom","filterTech","searchInput","sortSelect"].forEach(id=>document.getElementById(id).value="");
+
+      document.getElementById("resetBtn").onclick = ()=>{
+        ["filterRoom","filterTech","searchInput","sortSelect"].forEach(id=>
+          document.getElementById(id).value = ""
+        );
         FilterModule.activeDate = FilterModule.techFilter = "";
         RenderModule.renderCards(cardData);
         RenderModule.renderCalendar(cardData);
@@ -365,25 +370,25 @@
 
       const tt = document.getElementById("themeToggle");
       tt.onclick = ()=>{
-        const body=document.body;
-        const next = body.getAttribute("data-theme")==="dark"?"light":"dark";
-        body.setAttribute("data-theme", next);
+        const b = document.body;
+        const next = (b.getAttribute("data-theme")==="dark"?"light":"dark");
+        b.setAttribute("data-theme", next);
         localStorage.setItem("theme", next);
-        tt.textContent = next==="dark"?"☀️":"🌙";
+        tt.textContent = (next==="dark"?"☀️":"🌙");
       };
       const saved = localStorage.getItem("theme") || "dark";
       document.body.setAttribute("data-theme", saved);
-      document.getElementById("themeToggle").textContent = saved==="dark"?"☀️":"🌙";
+      document.getElementById("themeToggle").textContent = (saved==="dark"?"☀️":"🌙");
 
       // auto-refresh
-      setInterval(()=> {
+      setInterval(()=>{
         RenderModule.renderCards(cardData);
-        if(UIState.view==="calendar") RenderModule.renderCalendar(cardData);
+        if(this.view==="calendar") RenderModule.renderCalendar(cardData);
       }, 60000);
     }
   };
 
-  /* — Helper to populate filters & tabs — */
+  // — UI Helpers —
   const UI = {
     populateFilters(sessions) {
       const rooms=new Set(), techs=new Set(), dates=new Set();
@@ -392,35 +397,29 @@
         techs.add(r.Technician);
         dates.add(new Date(r["Start Time"]).toDateString());
       });
-      const R=document.getElementById("filterRoom"), T=document.getElementById("filterTech"), D=document.getElementById("dayTabs");
-      rooms.forEach(v=>R.appendChild(Object.assign(document.createElement("option"),{value:v,textContent:`Room ${v}`})));
-      techs.forEach(v=>T.appendChild(Object.assign(document.createElement("option"),{value:v,textContent:v})));
-      D.innerHTML="";
+      const R=document.getElementById("filterRoom"),
+            T=document.getElementById("filterTech"),
+            D=document.getElementById("dayTabs");
+      rooms.forEach(v=>R.appendChild(Object.assign(document.createElement("option"),{
+        value:v, textContent:`Room ${v}` })));
+      techs.forEach(v=>T.appendChild(Object.assign(document.createElement("option"),{
+        value:v, textContent:v })));
+      D.innerHTML = "";
       [...dates].sort().forEach(d=>{
-        const btn = document.createElement("button");
-        btn.textContent = d;
-        btn.onclick = ()=>{
-          FilterModule.activeDate = d;
+        const btn=document.createElement("button");
+        btn.textContent=d;
+        btn.onclick=()=>{
+          FilterModule.activeDate=d;
           RenderModule.renderCards(cardData);
           if(UIState.view==="calendar") RenderModule.renderCalendar(cardData);
         };
         D.appendChild(btn);
       });
-    },
-    initFiltersAndTabs(sessions) {
-      this.populateFilters(sessions);
-      document.getElementById("cardsContainer").classList.add("view-active");
-      UIState.init();
     }
   };
 
-  // Start the app
-  let cardData = [];
-  DataModule.load("data.csv", data=>{ cardData = data; UI.populateFilters(data); });
-
-  document.addEventListener("DOMContentLoaded", ()=>{});  
-  // immediate call
-  UIState.init();
+  // — Kick off on page load —
+  document.addEventListener("DOMContentLoaded", ()=> UIState.init());
   </script>
 </body>
 </html>
