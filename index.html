@@ -3,75 +3,134 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AV Schedule Viewer</title>
-
+  <title>AV Daily Schedule</title>
   <style>
+    /* ===== Base Colors & Themes ===== */
     :root {
-      --bg: #121212;
-      --card-bg: #1e1e1e;
-      --text: #f1f1f1;
-      --accent: #4a90e2;
-      --border: #2a2a2a;
+      color-scheme: light dark;
+      --bg-light: #f5f5f7;
+      --bg-dark: #1c1c1e;
+      --card-light: #ffffffcc;
+      --card-dark: #2c2c2e;
+      --text-light: #1c1c1e;
+      --text-dark: #f2f2f7;
+      --accent: #007aff;
+      --border-light: #e0e0e0;
+      --border-dark: #3a3a3c;
     }
 
     body {
       margin: 0;
-      font-family: system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      padding: 1em;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Helvetica, Arial, sans-serif;
+      background: var(--bg-light);
+      color: var(--text-light);
+      transition: background 0.3s ease, color 0.3s ease;
+      padding-top: 4.2em;
     }
 
-    h1 {
-      text-align: center;
-      font-size: 1.4em;
-      margin-bottom: 1em;
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: var(--bg-dark);
+        color: var(--text-dark);
+      }
+    }
+
+    /* ===== Header ===== */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3.6em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      background: rgba(255,255,255,0.7);
+      border-bottom: 1px solid var(--border-light);
+      font-weight: 600;
+      font-size: 1.2em;
+      z-index: 10;
       color: var(--accent);
     }
 
+    @media (prefers-color-scheme: dark) {
+      header {
+        background: rgba(28,28,30,0.7);
+        border-bottom: 1px solid var(--border-dark);
+      }
+    }
+
+    /* ===== Schedule Layout ===== */
     .schedule {
       display: flex;
       flex-direction: column;
-      gap: 0.8em;
+      gap: 1em;
+      padding: 1em;
+      max-width: 600px;
+      margin: 0 auto;
     }
 
+    /* ===== Session Card ===== */
     .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 0.8em;
-      display: flex;
-      flex-direction: column;
-      gap: 0.2em;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      border-radius: 14px;
+      padding: 1em 1.2em;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      background: var(--card-light);
+      border: 1px solid var(--border-light);
+      transition: transform 0.2s ease, background 0.3s ease;
     }
 
+    .card:hover {
+      transform: scale(1.01);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .card {
+        background: var(--card-dark);
+        border: 1px solid var(--border-dark);
+      }
+    }
+
+    /* ===== Text Styles ===== */
     .time {
-      font-weight: bold;
+      font-weight: 600;
       color: var(--accent);
+      font-size: 1em;
     }
 
     .room {
-      font-size: 1.1em;
+      font-weight: 500;
+      margin-top: 0.2em;
+      font-size: 1em;
     }
 
     .session {
       font-size: 0.95em;
+      margin-top: 0.3em;
       opacity: 0.9;
     }
 
     .tech, .gear {
       font-size: 0.85em;
-      color: #ccc;
+      opacity: 0.7;
+      margin-top: 0.2em;
     }
 
-    @media (min-width: 700px) {
-      body { padding: 2em 20%; }
+    /* ===== Subtle Divider Between Days (Optional) ===== */
+    .day-divider {
+      text-align: center;
+      font-weight: 500;
+      opacity: 0.6;
+      margin-top: 1.5em;
+      font-size: 0.9em;
     }
   </style>
 </head>
+
 <body>
-  <h1>Daily AV Schedule</h1>
+  <header>AV Daily Schedule</header>
   <div id="schedule" class="schedule"></div>
 
   <script>
@@ -94,7 +153,6 @@
     }
 
     function createCard(entry) {
-      // Skip empty or partial rows
       if (!entry.Time || !entry.Room || !entry.Session) return null;
 
       const card = document.createElement("div");
@@ -113,8 +171,12 @@
       const scheduleDiv = document.getElementById("schedule");
       let data = await loadCSV("Production Schedule Template - Sheet1 (3).csv");
 
-      // Filter out any rows that look like headers or notes
-      data = data.filter(r => r.Time && r.Room && r.Session && !r.Room.toLowerCase().includes("storage"));
+      // Remove non-session rows
+      data = data.filter(r =>
+        r.Time && r.Room && r.Session &&
+        !r.Room.toLowerCase().includes("storage") &&
+        !r.Time.toLowerCase().includes("day")
+      );
 
       data.forEach(entry => {
         const card = createCard(entry);
