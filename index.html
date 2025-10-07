@@ -2,418 +2,127 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Convention Schedule</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <title>AV Schedule Viewer</title>
 
   <style>
     :root {
-      --bg: #ffffff; --text: #1c1c1e;
-      --card-bg: #f9f9f9; --card-border: #ccc;
-      --accent: #007aff; --hover-bg: #eaeaea;
-      --now-line: #ff4d4f;
-    }
-    [data-theme="dark"] {
-      --bg: #1c1c1e; --text: #f5f5f7;
-      --card-bg: #2c2c2e; --card-border: #3a3a3c;
-      --accent: #0a84ff; --hover-bg: #3a3a3c;
-    }
-    body {
-      margin: 0; padding: 1em;
-      background: var(--bg); color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      transition: background .3s, color .3s;
-    }
-    h1 {
-      text-align: center; margin-bottom: .5em;
-    }
-    .filters {
-      display: flex; flex-wrap: wrap;
-      justify-content: center; gap: .5em;
-      margin: 1.5em 0;
-    }
-    input, select, button {
-      background: var(--card-bg); color: var(--text);
-      border: 1px solid var(--card-border); border-radius: 6px;
-      padding: .6em; font-size: 1em; min-width: 180px;
-    }
-    #toggleViewBtn, #resetBtn { cursor: pointer; }
-    #themeToggle {
-      background: none; border: 1px solid var(--card-border);
-      font-size: 1.4em; padding: .6em .2em; width: 2.5em;
-      text-align: center; margin-left: .5em; border-radius: 6px;
-      cursor: pointer; transition: transform .2s, background .2s;
-    }
-    #themeToggle:hover {
-      transform: scale(1.1); background: var(--hover-bg);
-    }
-    .tabs {
-      display: flex; flex-wrap: wrap;
-      justify-content: center; gap: .5em;
-      margin-top: 1em;
+      --bg: #121212;
+      --card-bg: #1e1e1e;
+      --text: #f1f1f1;
+      --accent: #4a90e2;
+      --border: #2a2a2a;
     }
 
-    .cards, .calendar { display: none; }
-    .cards.view-active {
-      display: flex; flex-direction: column; gap: 1em;
-      max-width: 600px; margin: 0 auto;
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 1em;
     }
-    .calendar.view-active {
-      display: block;
+
+    h1 {
+      text-align: center;
+      font-size: 1.4em;
+      margin-bottom: 1em;
+      color: var(--accent);
+    }
+
+    .schedule {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8em;
     }
 
     .card {
-      background: var(--card-bg); border: 1px solid var(--card-border);
-      border-radius: 12px; padding: 1em;
-      box-shadow: 0 2px 6px rgba(0,0,0,.15);
-      transition: .3s; cursor: pointer;
-    }
-    .card h3 {
-      margin-top: 0; color: var(--accent);
-    }
-    .badge {
-      display: inline-block; padding: .2em .6em;
-      border-radius: 6px; font-size: .8em;
-      margin-left: .5em;
-    }
-    .card.active {
-      border: 2px solid var(--accent);
-      box-shadow: 0 0 8px var(--accent);
-      background: rgba(10,132,255,.1);
-    }
-    .card.completed {
-      opacity: .6; filter: grayscale(10%);
-    }
-    @media (max-width: 768px) {
-      .card.collapsed .details { display: none; }
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.8em;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2em;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
 
-    .calendar-container {
-      position: relative; margin: 2em auto;
-      max-width: 1000px; height: 1440px; /* 24*60px */
-      border: 1px solid var(--card-border);
-      background: var(--card-bg); border-radius: 10px;
-      box-sizing: content-box; overflow: hidden;
+    .time {
+      font-weight: bold;
+      color: var(--accent);
     }
-    .calendar-hour {
-      position: absolute; left: 0; right: 0;
-      height: 60px; border-top: 1px solid var(--card-border);
+
+    .room {
+      font-size: 1.1em;
     }
-    .calendar-hour-label {
-      position: absolute; left: 0; width: 70px;
-      text-align: right; padding-right: 10px;
-      font-size: .75em; color: var(--text);
+
+    .session {
+      font-size: 0.95em;
+      opacity: 0.9;
     }
-    .session-block {
-      position: absolute; padding: .2em .4em;
-      border-radius: 6px; font-size: .8em;
-      color: white; overflow: hidden; box-sizing: border-box;
-      border: 1px solid var(--card-border);
+
+    .tech, .gear {
+      font-size: 0.85em;
+      color: #ccc;
     }
-    .current-time-line {
-      position: absolute; left: 0; right: 0;
-      height: 2px; background: var(--now-line);
-      z-index: 10;
-    }
-    .session-header {
-      font-size: .8em; line-height: 1.2; text-align: center;
+
+    @media (min-width: 700px) {
+      body { padding: 2em 20%; }
     }
   </style>
 </head>
-
-<body data-theme="dark">
-  <h1>Convention Schedule</h1>
-
-  <div class="filters">
-    <input type="text" id="searchInput" placeholder="Search sessions…" />
-    <select id="filterRoom"><option value="">Filter by Room</option></select>
-    <select id="filterTech"><option value="">Filter by Technician</option></select>
-    <select id="sortSelect">
-      <option value="">Sort by</option>
-      <option value="time-asc">Start Time (Earliest)</option>
-      <option value="time-desc">Start Time (Latest)</option>
-      <option value="room">Room</option>
-      <option value="tech">Technician</option>
-    </select>
-    <button id="resetBtn">Reset Filters</button>
-    <button id="toggleViewBtn">View as Calendar</button>
-    <button id="themeToggle" title="Toggle Theme">🌙</button>
-  </div>
-
-  <div class="tabs" id="dayTabs"></div>
-
-  <div id="cardsContainer" class="cards view-active"></div>
-  <div id="calendarContainer" class="calendar calendar-container"></div>
+<body>
+  <h1>Daily AV Schedule</h1>
+  <div id="schedule" class="schedule"></div>
 
   <script>
-  // — Data Module —
-  const DataModule = {
-    load(path, cb) {
-      Papa.parse(path, { download: true, header: true,
-        complete: res => cb(res.data.filter(r=>r.Session))
+    async function loadCSV(url) {
+      const response = await fetch(url);
+      const text = await response.text();
+      return parseCSV(text);
+    }
+
+    function parseCSV(text) {
+      const lines = text.split(/\r?\n/).filter(l => l.trim() !== "");
+      const headers = lines[0].split(",").map(h => h.trim());
+      const data = lines.slice(1).map(line => {
+        const values = line.split(",");
+        const row = {};
+        headers.forEach((h, i) => row[h] = values[i] ? values[i].trim() : "");
+        return row;
+      });
+      return data;
+    }
+
+    function createCard(entry) {
+      // Skip empty or partial rows
+      if (!entry.Time || !entry.Room || !entry.Session) return null;
+
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <div class="time">${entry.Time}</div>
+        <div class="room">${entry.Room}</div>
+        <div class="session">${entry.Session}</div>
+        ${entry.Tech ? `<div class="tech">👤 ${entry.Tech}</div>` : ""}
+        ${entry.Gear ? `<div class="gear">🎛️ ${entry.Gear}</div>` : ""}
+      `;
+      return card;
+    }
+
+    async function init() {
+      const scheduleDiv = document.getElementById("schedule");
+      let data = await loadCSV("Production Schedule Template - Sheet1 (3).csv");
+
+      // Filter out any rows that look like headers or notes
+      data = data.filter(r => r.Time && r.Room && r.Session && !r.Room.toLowerCase().includes("storage"));
+
+      data.forEach(entry => {
+        const card = createCard(entry);
+        if (card) scheduleDiv.appendChild(card);
       });
     }
-  };
 
-  // — Filter Module —
-  const FilterModule = {
-    activeDate: "",
-    techFilter: "",
-    get(sessions) {
-      const room = document.getElementById("filterRoom").value;
-      const tech = this.techFilter || document.getElementById("filterTech").value;
-      const term = document.getElementById("searchInput").value.toLowerCase();
-      const sort = document.getElementById("sortSelect").value;
-
-      let arr = sessions.filter(r => {
-        const dateOk = !this.activeDate ||
-          new Date(r["Start Time"]).toDateString() === this.activeDate;
-        const textOk =
-          r.Session.toLowerCase().includes(term) ||
-          r.Technician.toLowerCase().includes(term) ||
-          r["AV Gear"].toLowerCase().includes(term) ||
-          r.Room.includes(term);
-        return dateOk && (!room||r.Room===room) && (!tech||r.Technician===tech) && textOk;
-      });
-
-      arr.sort((a,b)=>{
-        if(sort==="time-asc")  return new Date(a["Start Time"])-new Date(b["Start Time"]);
-        if(sort==="time-desc") return new Date(b["Start Time"])-new Date(a["Start Time"]);
-        if(sort==="room")      return a.Room.localeCompare(b.Room);
-        if(sort==="tech")      return a.Technician.localeCompare(b.Technician);
-        return 0;
-      });
-      return arr;
-    }
-  };
-
-  // — Render Module —
-  const RenderModule = {
-    hashColor(str,sat=40,light=60){
-      let h=0; for(let c of str) h=c.charCodeAt(0)+((h<<5)-h);
-      return `hsl(${h%360},${sat}%,${light}%)`;
-    },
-    renderCards(sessions){
-      if(UIState.view!=="card") return;
-      const container = document.getElementById("cardsContainer");
-      container.innerHTML = "";
-      const arr = FilterModule.get(sessions);
-
-      arr.forEach((r,i,all)=>{
-        const card = document.createElement("div");
-        const st=new Date(r["Start Time"]), en=new Date(r["End Time"]), now=new Date();
-        let cls="", txt;
-        if(now<st) txt=`Starts at ${st.toLocaleTimeString([],{
-          hour:"2-digit",minute:"2-digit"
-        })}`;
-        else if(now>=en){ cls="completed"; txt="Completed"; }
-        else{
-          cls="active";
-          const rem=Math.ceil((en-now)/60000);
-          txt=`${rem} minute${rem===1?"":"s"} remaining`;
-        }
-        const color = this.hashColor(r.Technician);
-        const conflict = all.some((o,j)=>
-          j!==i&&o.Technician===r.Technician&&
-          new Date(o["Start Time"])<en&&new Date(o["End Time"])>st
-        );
-
-        card.className=`card ${cls}`+(window.innerWidth<768?" collapsed":"");
-        card.innerHTML=`
-          <h3>${r.Session}</h3>
-          <p><strong>Room:</strong> ${r.Room}</p>
-          <p><strong>Time:</strong> ${st.toLocaleString([],{
-            weekday:"long",hour:"numeric",minute:"2-digit",hour12:true
-          })}</p>
-          <div class="details">
-            <p><strong>End:</strong> ${en.toLocaleString([],{
-              weekday:"long",hour:"numeric",minute:"2-digit",hour12:true
-            })}</p>
-            <p><strong>AV Gear:</strong> ${r["AV Gear"]}</p>
-            <p><strong>Technician:</strong>
-              <span class="badge tech-filter" style="background:${color};">${r.Technician}</span>
-              ${conflict?'<span class="badge" style="background:#f00;color:#fff">Conflict</span>':''}
-            </p>
-            <div class="progress-bar"><div class="progress-fill" style="width:${
-              cls==="active"?((now-st)/(en-st)*100):100
-            }%"></div></div>
-            <div class="progress-label">${txt}</div>
-          </div>
-        `;
-        card.onclick = ()=> window.innerWidth<768 && card.classList.toggle("collapsed");
-        container.appendChild(card);
-      });
-
-      document.querySelectorAll(".tech-filter").forEach(badge=>{
-        badge.onclick = e=>{
-          e.stopPropagation();
-          const t=badge.textContent;
-          FilterModule.techFilter = (FilterModule.techFilter===t?"":t);
-          this.renderCards(cardData);
-        };
-      });
-    },
-
-    renderCalendar(sessions){
-      if(UIState.view!=="calendar") return;
-      const c = document.getElementById("calendarContainer");
-      c.innerHTML = "";
-
-      const arr = FilterModule.get(sessions)
-        .map(r=>({ ...r, start:new Date(r["Start Time"]), end:new Date(r["End Time"]) }));
-
-      // draw 24h grid
-      for(let h=0; h<24; h++){
-        const hr=document.createElement("div");
-        hr.className="calendar-hour";
-        hr.style.top=`${h*60}px`;
-        const lbl=document.createElement("div");
-        lbl.className="calendar-hour-label";
-        lbl.textContent=`${String(h).padStart(2,"0")}:00`;
-        hr.appendChild(lbl);
-        c.appendChild(hr);
-      }
-
-      // current time line
-      const now=new Date();
-      const m = now.getHours()*60+now.getMinutes();
-      const line=document.createElement("div");
-      line.className="current-time-line";
-      line.style.top=`${m}px`;
-      c.appendChild(line);
-
-      // cluster overlapping
-      arr.sort((a,b)=>a.start-b.start);
-      const clusters=[];
-      arr.forEach(s=>{
-        let found=false;
-        for(const cl of clusters){
-          if(s.start<cl.end){
-            cl.sessions.push(s);
-            cl.end=new Date(Math.max(cl.end,s.end));
-            found=true; break;
-          }
-        }
-        if(!found) clusters.push({ sessions:[s], end:s.end });
-      });
-      clusters.forEach(cl=>{
-        const tracks=[];
-        cl.sessions.forEach(s=>{
-          let ti=tracks.findIndex(t=>t[t.length-1].end<=s.start);
-          if(ti<0){ ti=tracks.length; tracks.push([]); }
-          tracks[ti].push(s);
-          s._track=ti;
-        });
-        cl._cols=tracks.length;
-      });
-
-      // layout session blocks (room & tech only)
-      const cw=c.clientWidth, lm=80, rm=10, aw=cw-lm-rm;
-      arr.forEach(s=>{
-        const cl=clusters.find(x=>x.sessions.includes(s));
-        const cols=cl._cols, col=s._track;
-        const topPx=s.start.getHours()*60+s.start.getMinutes();
-        const hPx=(s.end-s.start)/60000;
-        const leftPx=lm+col*(aw/cols);
-        const wPx=aw/cols-5;
-
-        const blk=document.createElement("div");
-        blk.className="session-block";
-        blk.style.top=`${topPx}px`;
-        blk.style.height=`${hPx}px`;
-        blk.style.left=`${leftPx}px`;
-        blk.style.width=`${wPx}px`;
-        blk.style.backgroundColor = RenderModule.hashColor(s.Room,30,60);
-        blk.innerHTML = `
-          <div class="session-header">
-            <strong>Room ${s.Room}</strong> — ${s.Technician}
-          </div>
-        `;
-        c.appendChild(blk);
-      });
-    }
-  };
-
-  // — UI State & Init —
-  let cardData=[];
-  const UIState = {
-    view:"card",
-    init(){
-      DataModule.load("data.csv", sessions=>{
-        cardData = sessions;
-        UI.populateFilters(sessions);
-        RenderModule.renderCards(sessions);
-      });
-      document.getElementById("toggleViewBtn").onclick=()=>{
-        this.view = this.view==="card"?"calendar":"card";
-        document.getElementById("toggleViewBtn").textContent =
-          this.view==="card"?"View as Calendar":"View as Cards";
-        document.getElementById("cardsContainer").classList.toggle("view-active", this.view==="card");
-        document.getElementById("calendarContainer").classList.toggle("view-active", this.view==="calendar");
-        RenderModule.renderCalendar(cardData);
-        RenderModule.renderCards(cardData);
-      };
-      ["filterRoom","filterTech","searchInput","sortSelect"].forEach(id=>{
-        document.getElementById(id).oninput = ()=> {
-          RenderModule.renderCards(cardData);
-          RenderModule.renderCalendar(cardData);
-        };
-      });
-      document.getElementById("resetBtn").onclick=()=>{
-        ["filterRoom","filterTech","searchInput","sortSelect"].forEach(id=>
-          document.getElementById(id).value=""
-        );
-        FilterModule.activeDate = FilterModule.techFilter = "";
-        RenderModule.renderCards(cardData);
-        RenderModule.renderCalendar(cardData);
-      };
-      const tt=document.getElementById("themeToggle");
-      tt.onclick=()=>{
-        const b=document.body;
-        const nxt=b.getAttribute("data-theme")==="dark"?"light":"dark";
-        b.setAttribute("data-theme",nxt);
-        localStorage.setItem("theme",nxt);
-        tt.textContent = nxt==="dark"?"☀️":"🌙";
-      };
-      const saved=localStorage.getItem("theme")||"dark";
-      document.body.setAttribute("data-theme",saved);
-      document.getElementById("themeToggle").textContent = saved==="dark"?"☀️":"🌙";
-      setInterval(()=>{
-        RenderModule.renderCards(cardData);
-        if(this.view==="calendar") RenderModule.renderCalendar(cardData);
-      },60000);
-    }
-  };
-
-  // — UI Helpers —
-  const UI = {
-    populateFilters(sessions){
-      const rooms=new Set(), techs=new Set(), dates=new Set();
-      sessions.forEach(r=>{
-        rooms.add(r.Room);
-        techs.add(r.Technician);
-        dates.add(new Date(r["Start Time"]).toDateString());
-      });
-      const R=document.getElementById("filterRoom"),
-            T=document.getElementById("filterTech"),
-            D=document.getElementById("dayTabs");
-      rooms.forEach(v=>R.appendChild(Object.assign(document.createElement("option"),{value:v, textContent:`Room ${v}`})));
-      techs.forEach(v=>T.appendChild(Object.assign(document.createElement("option"),{value:v, textContent:v})));
-      D.innerHTML="";
-      [...dates].sort().forEach(d=>{
-        const btn=document.createElement("button");
-        btn.textContent=d;
-        btn.onclick=()=>{
-          FilterModule.activeDate=d;
-          RenderModule.renderCards(cardData);
-          if(UIState.view==="calendar") RenderModule.renderCalendar(cardData);
-        };
-        D.appendChild(btn);
-      });
-    }
-  };
-
-  document.addEventListener("DOMContentLoaded", ()=> UIState.init());
+    init();
   </script>
 </body>
 </html>
