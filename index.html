@@ -2,239 +2,356 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>AV Schedule Viewer</title>
 
+  <!-- PapaParse for robust CSV parsing (handles commas, quotes, etc.) -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
   <style>
-    /* ===== Apple-inspired Styling ===== */
     :root {
-      --bg-color: #f5f5f7;
-      --text-color: #1c1c1e;
-      --card-bg: #ffffff;
-      --border-color: #d2d2d7;
-      --accent-color: #007aff;
+      --bg: #f5f5f7;
+      --text: #1c1c1e;
+      --card: #ffffff;
+      --border: #d2d2d7;
+      --accent: #007aff;
+      --muted: #6b6b6f;
+      --maxw: 760px;
     }
     [data-theme="dark"] {
-      --bg-color: #1c1c1e;
-      --text-color: #f5f5f7;
-      --card-bg: #2c2c2e;
-      --border-color: #3a3a3c;
-      --accent-color: #0a84ff;
+      --bg: #1c1c1e;
+      --text: #f5f5f7;
+      --card: #2c2c2e;
+      --border: #3a3a3c;
+      --accent: #0a84ff;
+      --muted: #a0a0a4;
     }
 
+    html, body { height: 100%; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
-      background: var(--bg-color);
-      color: var(--text-color);
       margin: 0;
-      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      padding-top: 108px; /* header (56) + filter (52) */
     }
 
+    /* Header */
     header {
-      position: sticky;
-      top: 0;
-      background: var(--bg-color);
-      padding: 1rem;
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      z-index: 100;
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 56px;
+      display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      background: rgba(255,255,255,0.72);
+      border-bottom: 1px solid var(--border);
+      z-index: 20;
+      color: var(--accent);
+      font-weight: 600; font-size: 1.05rem;
+    }
+    [data-theme="dark"] header {
+      background: rgba(28,28,30,0.72);
     }
 
-    h1 {
-      font-size: 1.4rem;
-      text-align: center;
-      margin: 0;
+    /* Filter bar */
+    .filter-bar {
+      position: fixed; top: 56px; left: 0; right: 0;
+      z-index: 15;
+      display: flex; gap: 10px; align-items: center; justify-content: center;
+      padding: 10px 12px;
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+      background: rgba(255,255,255,0.66);
+      border-bottom: 1px solid var(--border);
+    }
+    [data-theme="dark"] .filter-bar {
+      background: rgba(28,28,30,0.66);
+    }
+
+    .controls {
+      width: 100%;
+      max-width: var(--maxw);
+      display: flex; gap: 10px; align-items: center; justify-content: space-between;
+      padding: 0 10px;
+      box-sizing: border-box;
     }
 
     select {
-      padding: 0.5rem;
-      font-size: 1rem;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      background: var(--card-bg);
-      color: var(--text-color);
       width: 100%;
-    }
-
-    .container {
-      padding: 1rem;
-    }
-
-    .date-section {
-      margin-bottom: 2rem;
-    }
-
-    .date-header {
-      font-weight: 600;
-      font-size: 1.2rem;
-      margin: 1.2rem 0 0.5rem;
-      padding-bottom: 0.2rem;
-      border-bottom: 1px solid var(--border-color);
-      color: var(--accent-color);
-      text-align: center;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
+      max-width: 320px;
+      padding: 10px 14px;
+      font-size: 1rem; font-weight: 600;
+      color: var(--text);
+      background: var(--card);
+      border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 0.9rem 1rem;
-      margin-bottom: 0.8rem;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-      transition: transform 0.1s ease, box-shadow 0.2s ease;
-    }
-
-    .card:hover {
-      transform: scale(1.01);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
-    }
-
-    .card h2 {
-      font-size: 1.05rem;
-      margin: 0 0 0.4rem;
-      color: var(--accent-color);
-    }
-
-    .card p {
-      margin: 0.2rem 0;
-      font-size: 0.95rem;
+      appearance: none; -webkit-appearance: none;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
     }
 
     .theme-toggle {
       background: none;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      font-size: 1.2rem;
-      padding: 0.3rem 0.6rem;
-      align-self: center;
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 10px;
+      font-size: 1.1rem;
+      padding: 6px 10px;
       cursor: pointer;
-      transition: background 0.3s ease;
     }
 
-    .theme-toggle:hover {
-      background: var(--border-color);
+    main {
+      max-width: var(--maxw);
+      margin: 0 auto;
+      padding: 12px;
+      box-sizing: border-box;
     }
 
-    @media (min-width: 600px) {
-      .container {
-        padding: 1.5rem 2rem;
-      }
-      .card {
-        max-width: 500px;
-        margin-left: auto;
-        margin-right: auto;
-      }
+    /* Date sections */
+    .date-section { margin-bottom: 22px; }
+    .date-header {
+      position: sticky;
+      top: 108px; /* header+filter */
+      z-index: 5;
+      background: transparent;
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.98rem;
+      color: var(--muted);
+      padding: 4px 0;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+      transition: transform .15s ease, box-shadow .2s ease;
+    }
+    .card:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,0,0,0.10); }
+
+    .row {
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+    }
+    .left { flex: 1 1 auto; min-width: 0; }
+    .right { flex: 0 0 auto; min-width: 64px; text-align: right; color: var(--accent); font-weight: 600; }
+
+    .room {
+      font-weight: 700; font-size: 0.98rem; margin-bottom: 4px;
+    }
+    .session {
+      font-size: 0.95rem; opacity: 0.95; margin-bottom: 6px;
+    }
+    .meta {
+      font-size: 0.88rem; color: var(--muted);
+    }
+
+    @media (max-width: 420px) {
+      .card { padding: 11px 12px; }
+      .right { min-width: 56px; }
     }
   </style>
 </head>
 <body data-theme="light">
-  <header>
-    <h1>AV Schedule Viewer</h1>
-    <button id="themeToggle" class="theme-toggle">🌙</button>
-    <select id="roomFilter">
-      <option value="all">Show All Rooms</option>
-    </select>
-  </header>
+  <header>AV Schedule Viewer</header>
 
-  <div id="scheduleContainer" class="container"></div>
+  <div class="filter-bar">
+    <div class="controls">
+      <select id="roomFilter" aria-label="Filter by room">
+        <option value="all">Show All Rooms</option>
+      </select>
+      <button id="themeToggle" class="theme-toggle" title="Toggle theme">🌙</button>
+    </div>
+  </div>
+
+  <main>
+    <div id="schedule"></div>
+  </main>
 
   <script>
-    let sessions = [];
+    const CSV_FILE = "Production Schedule Template - Sheet1 (4).csv";
+    let allRows = [];
+    let dateKey = "Day"; // will auto-detect
 
-    async function loadCSV() {
-      const response = await fetch('Production Schedule Template - Sheet1 (4).csv');
-      const text = await response.text();
-      const rows = text.split('\n').map(r => r.split(','));
-      const headers = rows[0].map(h => h.trim());
-      sessions = rows.slice(1).map(r => {
-        const obj = {};
-        headers.forEach((h, i) => obj[h] = (r[i] || '').trim());
-        return obj;
-      }).filter(s => s.Room && s.Session && s.Time);
-      renderSchedule();
-      populateRoomFilter();
+    // Detect whether the CSV uses "Day" or "Date"
+    function detectDateKey(headers) {
+      const candidates = ["Day", "Date", "day", "date", "DAY", "DATE"];
+      for (const c of candidates) if (headers.includes(c)) return c;
+      return null;
     }
 
-    function groupByDate(data) {
-      const grouped = {};
-      data.forEach(s => {
-        const date = s.Date || 'Unknown Date';
-        if (!grouped[date]) grouped[date] = [];
-        grouped[date].push(s);
+    // Basic guard to skip non-session rows
+    function isValidSession(row) {
+      if (!row) return false;
+      if (!row.Room || !row.Session || !row.Time) return false;
+      // If the session name is literally the day/date header, skip
+      const sess = String(row.Session).trim().toLowerCase();
+      const day = String(row[dateKey] || "").trim().toLowerCase();
+      if (day && sess === day) return false;
+      return true;
+    }
+
+    function uniqueRooms(rows) {
+      const set = new Set();
+      rows.forEach(r => { if (r.Room && r.Room.trim()) set.add(r.Room.trim()); });
+      return Array.from(set).sort((a,b)=>a.localeCompare(b));
+    }
+
+    function parseTimeToMinutes(t) {
+      if (!t) return 24*60; // sort unknown times last
+      const s = String(t).trim().replace(/\u00A0|\u202F/g, " ").replace(/\s+/g, " ");
+
+      const ampm = s.match(/(\d{1,2}):?(\d{0,2})\s*([AaPp][Mm])/);
+      if (ampm) {
+        let hh = parseInt(ampm[1],10) || 0;
+        let mm = ampm[2] ? parseInt(ampm[2],10) : 0;
+        const mer = ampm[3].toLowerCase();
+        if (mer === "pm" && hh !== 12) hh += 12;
+        if (mer === "am" && hh === 12) hh = 0;
+        return hh*60 + mm;
+      }
+
+      const hm = s.match(/(\d{1,2}):(\d{2})/);
+      if (hm) return (parseInt(hm[1],10)*60) + parseInt(hm[2],10);
+
+      const digits = s.match(/^\d{3,4}$/);
+      if (digits) {
+        const n = digits[0];
+        if (n.length === 3) return (parseInt(n.slice(0,1),10)*60)+parseInt(n.slice(1),10);
+        if (n.length === 4) return (parseInt(n.slice(0,2),10)*60)+parseInt(n.slice(2),10);
+      }
+      return 24*60;
+    }
+
+    function groupByDate(rows) {
+      const order = [];
+      const map = {};
+      rows.forEach(r => {
+        const key = String(r[dateKey] || "Unknown").trim();
+        if (!map[key]) { map[key] = []; order.push(key); }
+        map[key].push(r);
       });
-      return grouped;
+      // sort inside each date by time
+      order.forEach(k => map[k].sort((a,b)=> parseTimeToMinutes(a.Time) - parseTimeToMinutes(b.Time)));
+      return { order, map };
     }
 
-    function renderSchedule() {
-      const container = document.getElementById('scheduleContainer');
-      container.innerHTML = '';
+    function populateRoomFilter(rooms) {
+      const sel = document.getElementById("roomFilter");
+      // keep first option; clear others
+      while (sel.options.length > 1) sel.remove(1);
+      rooms.forEach(room => {
+        const opt = document.createElement("option");
+        opt.value = room;
+        opt.textContent = room;
+        sel.appendChild(opt);
+      });
+      sel.onchange = render;
+    }
 
-      const roomFilter = document.getElementById('roomFilter').value;
-      const filtered = roomFilter === 'all'
-        ? sessions
-        : sessions.filter(s => s.Room === roomFilter);
+    function createCard(row) {
+      const card = document.createElement("div");
+      card.className = "card";
+      const left = `
+        <div class="left">
+          <div class="room">${row.Room}</div>
+          <div class="session">${row.Session}</div>
+          <div class="meta">
+            ${row.Tech ? `👤 ${row.Tech}` : ""}${row.Tech && row.Gear ? " · " : ""}${row.Gear ? `🎛️ ${row.Gear}` : ""}
+          </div>
+        </div>
+      `;
+      const right = `<div class="right">${row.Time || ""}</div>`;
+      card.innerHTML = `<div class="row">${left}${right}</div>`;
+      return card;
+    }
 
-      const grouped = groupByDate(filtered);
+    function render() {
+      const container = document.getElementById("schedule");
+      container.innerHTML = "";
 
-      Object.keys(grouped).forEach(date => {
-        const section = document.createElement('div');
-        section.className = 'date-section';
+      const room = document.getElementById("roomFilter").value;
+      const rows = allRows.filter(r => isValidSession(r) && (room === "all" || String(r.Room).trim() === room));
 
-        const header = document.createElement('div');
-        header.className = 'date-header';
-        header.textContent = date;
+      const { order, map } = groupByDate(rows);
+
+      order.forEach(day => {
+        const list = map[day];
+        if (!list || !list.length) return;
+
+        const section = document.createElement("section");
+        section.className = "date-section";
+
+        const header = document.createElement("div");
+        header.className = "date-header";
+        header.textContent = day; // show date/day as section header only
         section.appendChild(header);
 
-        grouped[date].forEach(s => {
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.innerHTML = `
-            <h2>${s.Session}</h2>
-            <p><strong>Room:</strong> ${s.Room}</p>
-            <p><strong>Time:</strong> ${s.Time}</p>
-            <p><strong>Technician:</strong> ${s.Tech || 'TBD'}</p>
-            <p><strong>Gear:</strong> ${s.Gear || 'N/A'}</p>
-          `;
-          section.appendChild(card);
-        });
+        list.forEach(row => section.appendChild(createCard(row)));
 
         container.appendChild(section);
       });
     }
 
-    function populateRoomFilter() {
-      const roomFilter = document.getElementById('roomFilter');
-      const uniqueRooms = [...new Set(sessions.map(s => s.Room).filter(r => r && r.trim() !== ""))];
-      uniqueRooms.sort((a, b) => a.localeCompare(b));
-
-      // Clear existing except first option
-      while (roomFilter.options.length > 1) {
-        roomFilter.remove(1);
+    function initThemeToggle() {
+      const btn = document.getElementById("themeToggle");
+      btn.onclick = () => {
+        const body = document.body;
+        const next = body.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        body.setAttribute("data-theme", next);
+        btn.textContent = next === "dark" ? "☀️" : "🌙";
+        localStorage.setItem("theme", next);
+      };
+      // restore
+      const saved = localStorage.getItem("theme");
+      if (saved) {
+        document.body.setAttribute("data-theme", saved);
+        btn.textContent = saved === "dark" ? "☀️" : "🌙";
       }
-
-      uniqueRooms.forEach(room => {
-        const option = document.createElement('option');
-        option.value = room;
-        option.textContent = room;
-        roomFilter.appendChild(option);
-      });
-
-      roomFilter.addEventListener('change', renderSchedule);
     }
 
-    // Theme Toggle
-    const themeToggle = document.getElementById('themeToggle');
-    themeToggle.addEventListener('click', () => {
-      const body = document.body;
-      const current = body.getAttribute('data-theme');
-      const next = current === 'light' ? 'dark' : 'light';
-      body.setAttribute('data-theme', next);
-      themeToggle.textContent = next === 'light' ? '🌙' : '☀️';
-    });
+    function loadCSV() {
+      Papa.parse(CSV_FILE, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: (res) => {
+          const rows = (res.data || []).map(r => {
+            // Trim all cells
+            const out = {};
+            for (const k in r) out[k] = typeof r[k] === "string" ? r[k].trim() : r[k];
+            return out;
+          });
 
-    loadCSV();
+          // Detect the date key once (Day or Date)
+          if (rows.length) {
+            const headers = Object.keys(rows[0]);
+            const dk = detectDateKey(headers);
+            if (dk) dateKey = dk;
+          }
+
+          allRows = rows;
+
+          // Populate filter with unique rooms from valid sessions
+          const rooms = uniqueRooms(allRows.filter(isValidSession));
+          populateRoomFilter(rooms);
+
+          // Initial render
+          render();
+        },
+        error: (err) => {
+          document.getElementById("schedule").textContent = "Failed to load schedule.";
+          console.error(err);
+        }
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      initThemeToggle();
+      loadCSV();
+    });
   </script>
 </body>
 </html>
