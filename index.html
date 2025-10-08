@@ -5,11 +5,15 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>AV Schedule Viewer</title>
 
-  <!-- PapaParse for robust CSV parsing (handles commas, quotes, etc.) -->
+  <!-- PapaParse for robust CSV parsing -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <style>
     :root {
+      /* heights used for sticky offsets */
+      --header-h: 56px;
+      --filter-h: 52px;
+
       --bg: #f5f5f7;
       --text: #1c1c1e;
       --card: #ffffff;
@@ -35,18 +39,19 @@
       color: var(--text);
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
-      padding-top: 108px; /* header (56) + filter (52) */
+      /* Make room for the fixed header + filter */
+      padding-top: calc(var(--header-h) + var(--filter-h));
     }
 
-    /* Header */
+    /* Header (fixed) */
     header {
       position: fixed; top: 0; left: 0; right: 0;
-      height: 56px;
+      height: var(--header-h);
       display: flex; align-items: center; justify-content: center;
       backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
       background: rgba(255,255,255,0.72);
       border-bottom: 1px solid var(--border);
-      z-index: 20;
+      z-index: 30;
       color: var(--accent);
       font-weight: 600; font-size: 1.05rem;
     }
@@ -54,15 +59,18 @@
       background: rgba(28,28,30,0.72);
     }
 
-    /* Filter bar */
+    /* Filter bar (fixed under header) */
     .filter-bar {
-      position: fixed; top: 56px; left: 0; right: 0;
-      z-index: 15;
-      display: flex; gap: 10px; align-items: center; justify-content: center;
-      padding: 10px 12px;
+      position: fixed; top: var(--header-h); left: 0; right: 0;
+      height: var(--filter-h);
+      z-index: 25;
+      display: flex; align-items: center; justify-content: center;
+      padding: 8px 12px;
+      gap: 10px;
       backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
       background: rgba(255,255,255,0.66);
       border-bottom: 1px solid var(--border);
+      box-sizing: border-box;
     }
     [data-theme="dark"] .filter-bar {
       background: rgba(28,28,30,0.66);
@@ -108,16 +116,23 @@
 
     /* Date sections */
     .date-section { margin-bottom: 22px; }
+
     .date-header {
       position: sticky;
-      top: 108px; /* header+filter */
-      z-index: 5;
-      background: transparent;
+      /* Sit exactly below the fixed header + filter */
+      top: calc(var(--header-h) + var(--filter-h));
+      z-index: 20; /* below filter (25), above cards */
+      padding: 6px 0;
       text-align: center;
       font-weight: 700;
       font-size: 0.98rem;
       color: var(--muted);
-      padding: 4px 0;
+
+      /* Give it a background so text isn’t overlaid by content behind */
+      background: var(--bg);
+      /* Optional subtle blur to match the UI */
+      backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+      border-bottom: 1px solid transparent; /* keeps layout consistent */
     }
 
     /* Cards */
@@ -149,6 +164,7 @@
     }
 
     @media (max-width: 420px) {
+      select { max-width: 240px; }
       .card { padding: 11px 12px; }
       .right { min-width: 56px; }
     }
@@ -173,20 +189,17 @@
   <script>
     const CSV_FILE = "Production Schedule Template - Sheet1 (4).csv";
     let allRows = [];
-    let dateKey = "Day"; // will auto-detect
+    let dateKey = "Day"; // will auto-detect "Day" or "Date"
 
-    // Detect whether the CSV uses "Day" or "Date"
     function detectDateKey(headers) {
       const candidates = ["Day", "Date", "day", "date", "DAY", "DATE"];
       for (const c of candidates) if (headers.includes(c)) return c;
       return null;
     }
 
-    // Basic guard to skip non-session rows
     function isValidSession(row) {
       if (!row) return false;
       if (!row.Room || !row.Session || !row.Time) return false;
-      // If the session name is literally the day/date header, skip
       const sess = String(row.Session).trim().toLowerCase();
       const day = String(row[dateKey] || "").trim().toLowerCase();
       if (day && sess === day) return false;
@@ -200,7 +213,7 @@
     }
 
     function parseTimeToMinutes(t) {
-      if (!t) return 24*60; // sort unknown times last
+      if (!t) return 24*60;
       const s = String(t).trim().replace(/\u00A0|\u202F/g, " ").replace(/\s+/g, " ");
 
       const ampm = s.match(/(\d{1,2}):?(\d{0,2})\s*([AaPp][Mm])/);
@@ -233,14 +246,12 @@
         if (!map[key]) { map[key] = []; order.push(key); }
         map[key].push(r);
       });
-      // sort inside each date by time
       order.forEach(k => map[k].sort((a,b)=> parseTimeToMinutes(a.Time) - parseTimeToMinutes(b.Time)));
       return { order, map };
     }
 
     function populateRoomFilter(rooms) {
       const sel = document.getElementById("roomFilter");
-      // keep first option; clear others
       while (sel.options.length > 1) sel.remove(1);
       rooms.forEach(room => {
         const opt = document.createElement("option");
@@ -286,7 +297,7 @@
 
         const header = document.createElement("div");
         header.className = "date-header";
-        header.textContent = day; // show date/day as section header only
+        header.textContent = day;
         section.appendChild(header);
 
         list.forEach(row => section.appendChild(createCard(row)));
@@ -298,13 +309,11 @@
     function initThemeToggle() {
       const btn = document.getElementById("themeToggle");
       btn.onclick = () => {
-        const body = document.body;
-        const next = body.getAttribute("data-theme") === "dark" ? "light" : "dark";
-        body.setAttribute("data-theme", next);
+        const next = document.body.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        document.body.setAttribute("data-theme", next);
         btn.textContent = next === "dark" ? "☀️" : "🌙";
         localStorage.setItem("theme", next);
       };
-      // restore
       const saved = localStorage.getItem("theme");
       if (saved) {
         document.body.setAttribute("data-theme", saved);
@@ -319,13 +328,11 @@
         skipEmptyLines: true,
         complete: (res) => {
           const rows = (res.data || []).map(r => {
-            // Trim all cells
             const out = {};
             for (const k in r) out[k] = typeof r[k] === "string" ? r[k].trim() : r[k];
             return out;
           });
 
-          // Detect the date key once (Day or Date)
           if (rows.length) {
             const headers = Object.keys(rows[0]);
             const dk = detectDateKey(headers);
@@ -334,11 +341,9 @@
 
           allRows = rows;
 
-          // Populate filter with unique rooms from valid sessions
           const rooms = uniqueRooms(allRows.filter(isValidSession));
           populateRoomFilter(rooms);
 
-          // Initial render
           render();
         },
         error: (err) => {
